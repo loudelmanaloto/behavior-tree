@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Combat AI Behavior Tree</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        margin: 0;
+        background: #0d1117;
+        font-family: Inter, sans-serif;
+        color: #e6edf3;
+      }
+
+      a {
+        position: relative;
+        z-index: 50;
+      }
+
+      .hud-grid {
+        background-image:
+          linear-gradient(rgba(88, 166, 255, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(88, 166, 255, 0.05) 1px, transparent 1px);
+        background-size: 40px 40px;
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+      }
+
+      .title-text {
+        font-family: Rajdhani, sans-serif;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+
+  <body class="relative flex flex-col min-h-screen w-full overflow-x-hidden">
+    <div class="hud-grid"></div>
+
+    <!-- HEADER -->
+    <header
+      class="flex flex-col lg:flex-row justify-between items-start lg:items-center px-6 lg:px-12 py-4 border-b border-[#30363D] bg-[#0D1117]/90 backdrop-blur relative z-20"
+    >
+      <div class="flex items-center space-x-4">
+        <div
+          class="w-10 h-10 flex items-center justify-center rounded bg-[#58A6FF]/10 border border-[#58A6FF]"
+        >
+          <i class="fas fa-project-diagram text-[#58A6FF]"></i>
+        </div>
+
+        <div>
+          <h1 class="text-xl lg:text-2xl font-bold title-text">
+            Combat AI Behavior Tree
+          </h1>
+          <p class="text-xs text-[#58A6FF] font-mono">
+            NPC_CLASS: SOLDIER_TIER_1
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="mt-2 lg:mt-0 font-mono text-xs border border-[#30363D] px-3 py-1 rounded text-[#8B949E]"
+      >
+        PRIORITY: LEFT → RIGHT
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main
+      class="flex flex-col lg:flex-row flex-1 overflow-hidden relative z-10"
+    >
+      <!-- SIDEBAR -->
+      <div
+        class="w-full lg:w-[320px] p-6 lg:p-8 space-y-6 bg-[#0D1117]/80 border-b lg:border-b-0 lg:border-r border-[#30363D]"
+      >
+        <h2 class="text-xs text-[#8B949E] font-mono uppercase tracking-widest">
+          Node Legend
+        </h2>
+
+        <div class="p-3 rounded border-l-4 border-[#58A6FF]">
+          <h3 class="text-white font-bold text-sm">Selector</h3>
+          <p class="text-xs text-[#8B949E]">
+            OR logic — succeeds if any child succeeds.
+          </p>
+        </div>
+
+        <div class="p-3 rounded border-l-4 border-[#39D353]">
+          <h3 class="text-white font-bold text-sm">Sequence</h3>
+          <p class="text-xs text-[#8B949E]">
+            AND logic — fails if one child fails.
+          </p>
+        </div>
+
+        <div class="p-3 rounded border-l-4 border-[#D2A8FF]">
+          <h3 class="text-white font-bold text-sm">Condition</h3>
+          <p class="text-xs text-[#8B949E]">Checks game state instantly.</p>
+        </div>
+
+        <div class="p-3 rounded border-l-4 border-[#FFA657]">
+          <h3 class="text-white font-bold text-sm">Action</h3>
+          <p class="text-xs text-[#8B949E]">Performs behavior over time.</p>
+        </div>
+      </div>
+
+      <!-- TREE VISUAL -->
+      <div class="flex-1 flex flex-col bg-[#010409]">
+        <div id="bt-diagram" class="flex-1 min-h-[400px]"></div>
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer
+      class="border-t border-[#30363D] px-6 py-3 flex justify-end text-xs text-[#58A6FF] font-mono"
+    >
+      <a href="slide11.html">SLIDE_11</a>
+    </footer>
+
+    <script>
+      const chartDom = document.getElementById("bt-diagram");
+      const myChart = echarts.init(chartDom);
+
+      function getSymbolSize() {
+        if (window.innerWidth < 640) return [80, 35];
+        if (window.innerWidth < 1024) return [100, 45];
+        return [120, 50];
+      }
+
+      const data = {
+        name: "ROOT\nSELECTOR\n(?)",
+        itemStyle: { color: "#1F6FEB", borderColor: "#58A6FF", borderWidth: 2 },
+
+        children: [
+          {
+            name: "SURVIVAL\nSequence",
+            itemStyle: {
+              color: "#238636",
+              borderColor: "#39D353",
+              borderWidth: 2,
+            },
+
+            children: [
+              {
+                name: "Is Health\nLow?",
+                itemStyle: {
+                  color: "#8957E5",
+                  borderColor: "#D2A8FF",
+                  borderWidth: 1,
+                },
+              },
+              {
+                name: "Flee To\nSafety",
+                itemStyle: {
+                  color: "#D29922",
+                  borderColor: "#FFA657",
+                  borderWidth: 1,
+                },
+              },
+            ],
+          },
+
+          {
+            name: "COMBAT\nSequence",
+            itemStyle: {
+              color: "#238636",
+              borderColor: "#39D353",
+              borderWidth: 2,
+            },
+
+            children: [
+              {
+                name: "Is Enemy\nVisible?",
+                itemStyle: {
+                  color: "#8957E5",
+                  borderColor: "#D2A8FF",
+                  borderWidth: 1,
+                },
+              },
+              {
+                name: "Aim At\nEnemy",
+                itemStyle: {
+                  color: "#D29922",
+                  borderColor: "#FFA657",
+                  borderWidth: 1,
+                },
+              },
+              {
+                name: "Shoot\nWeapon",
+                itemStyle: {
+                  color: "#D29922",
+                  borderColor: "#FFA657",
+                  borderWidth: 1,
+                },
+              },
+            ],
+          },
+
+          {
+            name: "INVESTIGATE\nSequence",
+            itemStyle: {
+              color: "#238636",
+              borderColor: "#39D353",
+              borderWidth: 2,
+            },
+
+            children: [
+              {
+                name: "Is Enemy\nHeard?",
+                itemStyle: {
+                  color: "#8957E5",
+                  borderColor: "#D2A8FF",
+                  borderWidth: 1,
+                },
+              },
+              {
+                name: "Move To\nSound",
+                itemStyle: {
+                  color: "#D29922",
+                  borderColor: "#FFA657",
+                  borderWidth: 1,
+                },
+              },
+              {
+                name: "Look\nAround",
+                itemStyle: {
+                  color: "#D29922",
+                  borderColor: "#FFA657",
+                  borderWidth: 1,
+                },
+              },
+            ],
+          },
+
+          {
+            name: "PATROL\nAction",
+            itemStyle: {
+              color: "#D29922",
+              borderColor: "#FFA657",
+              borderWidth: 1,
+            },
+          },
+        ],
+      };
+
+      function renderChart() {
+        myChart.setOption({
+          backgroundColor: "transparent",
+
+          tooltip: {
+            trigger: "item",
+            formatter: (p) => p.data.name.replace(/\n/g, " "),
+          },
+
+          series: [
+            {
+              type: "tree",
+              data: [data],
+
+              top: "5%",
+              left: "2%",
+              right: "2%",
+              bottom: "5%",
+
+              symbol: "rect",
+              symbolSize: getSymbolSize(),
+
+              orient: "vertical",
+              expandAndCollapse: false,
+
+              label: {
+                position: "inside",
+                align: "center",
+                verticalAlign: "middle",
+                fontFamily: "Roboto Mono",
+                fontSize: 12,
+                color: "#fff",
+                formatter: (p) => p.data.name,
+              },
+
+              lineStyle: {
+                color: "#30363D",
+                width: 2,
+                curveness: 0.5,
+              },
+            },
+          ],
+        });
+      }
+
+      renderChart();
+      window.addEventListener("resize", () => {
+        renderChart();
+        myChart.resize();
+      });
+    </script>
+  </body>
+</html>

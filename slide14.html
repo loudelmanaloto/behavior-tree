@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tools &amp; Frameworks</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --blue:   #58A6FF;
+    --green:  #39D353;
+    --gold:   #FFD700;
+    --red:    #FF4757;
+    --cyan:   #79C0FF;
+    --bg:     #0D1117;
+    --bg-alt: #010409;
+    --surface: #161B22;
+    --border: #30363D;
+    --text-muted: #8B949E;
+    --text-secondary: #C9D1D9;
+    --text-primary: #E6EDF3;
+  }
+
+  body {
+    margin: 0; padding: 0;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    background-color: var(--bg);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+  }
+
+  .bg-pattern {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.1;
+    background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' width='1' height='1' fill='%2358A6FF'/%3E%3C/svg%3E");
+  }
+
+  .title-text { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Header */
+  header {
+    position: relative; z-index: 20; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 clamp(1rem, 4vw, 3rem);
+    height: clamp(3.5rem, 8vh, 5rem);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .header-left { display: flex; align-items: center; gap: 1rem; }
+  .header-icon {
+    width: 2.5rem; height: 2.5rem; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; background: rgba(88,166,255,0.1); border: 1px solid var(--blue); color: var(--blue);
+  }
+  header h1 { font-size: clamp(1rem, 2.5vw, 1.5rem); font-weight: 700; margin: 0; color: white; }
+  header p  { font-family: 'Roboto Mono', monospace; font-size: clamp(0.55rem, 1vw, 0.7rem); color: var(--blue); letter-spacing: 0.1em; margin: 0; }
+  .slide-num { font-family: 'Roboto Mono', monospace; font-size: 1.25rem; color: var(--text-muted); }
+
+  /* Main */
+  main {
+    flex: 1; display: flex;
+    padding: clamp(0.75rem, 2vw, 2rem);
+    gap: clamp(0.75rem, 2vw, 1.5rem);
+    position: relative; z-index: 10;
+    overflow: hidden; min-height: 0;
+  }
+
+  /* Left: Unreal card */
+  .unreal-card {
+    flex: 0 0 auto; width: min(42%, 480px);
+    background: var(--bg);
+    border: 1px solid var(--blue);
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(88,166,255,0.05);
+    display: flex; flex-direction: column;
+    position: relative; overflow: hidden;
+  }
+
+  .industry-badge {
+    position: absolute; top: 0; right: 0;
+    background: var(--blue); color: var(--bg);
+    font-family: 'Roboto Mono', monospace; font-weight: 700;
+    font-size: clamp(0.5rem, 0.8vw, 0.62rem);
+    padding: 0.2rem 0.6rem; border-radius: 0 0 0 6px;
+    letter-spacing: 0.08em;
+  }
+
+  .unreal-header {
+    padding: clamp(0.75rem, 2vw, 1.25rem);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .unreal-title-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+
+  .unreal-logo {
+    width: clamp(1.75rem, 3vw, 2.5rem); height: clamp(1.75rem, 3vw, 2.5rem);
+    border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .unreal-logo i { color: black; font-size: clamp(0.9rem, 1.5vw, 1.25rem); }
+
+  .unreal-name { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: clamp(1rem, 2vw, 1.4rem); color: white; margin: 0; }
+  .unreal-sub  { font-family: 'Roboto Mono', monospace; font-size: clamp(0.5rem, 0.8vw, 0.62rem); color: var(--text-muted); margin: 0; }
+
+  .unreal-desc { font-size: clamp(0.7rem, 1.1vw, 0.8rem); color: var(--text-secondary); margin: 0; line-height: 1.5; }
+
+  /* Mock editor */
+  .mock-editor {
+    flex: 1; min-height: 0;
+    background: var(--bg-alt);
+    border-radius: 0 0 7px 7px;
+    position: relative; overflow: hidden;
+    background-image: linear-gradient(var(--surface) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--surface) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .editor-label {
+    position: absolute; top: 0.4rem; left: 0.5rem;
+    font-size: clamp(0.5rem, 0.8vw, 0.65rem); color: var(--blue); font-family: 'Roboto Mono', monospace;
+    z-index: 2;
+  }
+
+  /* SVG-based node editor — scales perfectly */
+  .mock-editor svg { width: 100%; height: 100%; }
+
+  .debug-badge {
+    position: absolute; bottom: 0.4rem; right: 0.5rem;
+    padding: 2px 6px; background: var(--surface); border: 1px solid var(--green);
+    border-radius: 3px; font-size: clamp(0.45rem, 0.75vw, 0.6rem);
+    color: var(--green); font-family: 'Roboto Mono', monospace;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* Right: tools grid */
+  .tools-grid {
+    flex: 1; min-width: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+  }
+
+  .tool-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: clamp(0.75rem, 2vw, 1.25rem);
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    display: flex; flex-direction: column; overflow: hidden;
+    min-height: 0;
+  }
+  .tool-card:hover { border-color: var(--blue); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.4rem; }
+
+  .card-icon {
+    width: clamp(1.75rem, 3vw, 3rem); height: clamp(1.75rem, 3vw, 3rem);
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; border: 1px solid var(--border);
+    background: rgba(48,54,61,0.3);
+    font-size: clamp(0.85rem, 1.8vw, 1.25rem);
+    flex-shrink: 0;
+  }
+
+  .tech-pill {
+    font-family: 'Roboto Mono', monospace; font-size: clamp(0.45rem, 0.8vw, 0.6rem);
+    padding: 2px 6px; border-radius: 4px;
+    background: rgba(13,17,23,0.6); border: 1px solid var(--border); color: var(--blue);
+    white-space: nowrap;
+  }
+  .tag-engine { color: var(--blue);  border-color: rgba(88,166,255,0.3); background: rgba(88,166,255,0.1); }
+  .tag-lib    { color: var(--green); border-color: rgba(57,211,83,0.3);  background: rgba(57,211,83,0.1); }
+  .tag-custom { color: var(--red);   border-color: rgba(255,71,87,0.3);  background: rgba(255,71,87,0.1); }
+
+  .card-title { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: clamp(0.9rem, 1.8vw, 1.1rem); color: var(--text-primary); margin: 0 0 0.3rem; }
+  .card-desc  { font-size: clamp(0.65rem, 1vw, 0.78rem); color: var(--text-muted); line-height: 1.5; margin: 0; flex: 1; }
+  .card-desc span { font-size: 0.9em; display: block; margin-top: 0.3rem; }
+
+  /* Mobile: stack main layout */
+  @media (max-width: 720px) {
+    main { flex-direction: column; overflow: auto; }
+    .unreal-card { width: 100%; flex: 0 0 auto; min-height: 300px; }
+    .tools-grid { grid-template-rows: auto; }
+    .mock-editor { min-height: 160px; }
+  }
+
+  @media (max-width: 480px) {
+    .tools-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Footer */
+  footer {
+    height: 2.5rem; background: var(--bg); border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 0 2rem; z-index: 20; position: relative; flex-shrink: 0;
+  }
+  footer a { font-family: 'Roboto Mono', monospace; color: var(--blue); font-size: 0.75rem; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="bg-pattern"></div>
+
+<header>
+  <div class="header-left">
+    <div class="header-icon"><i class="fas fa-tools"></i></div>
+    <div>
+      <h1 class="title-text">Tools &amp; Frameworks</h1>
+      <p>ECOSYSTEM_OVERVIEW</p>
+    </div>
+  </div>
+  <div class="slide-num">14</div>
+</header>
+
+<main>
+  <!-- Left: Unreal Engine -->
+  <div class="unreal-card">
+    <div class="industry-badge">INDUSTRY_STANDARD</div>
+
+    <div class="unreal-header">
+      <div class="unreal-title-row">
+        <div class="unreal-logo"><i class="fas fa-circle"></i></div>
+        <div>
+          <p class="unreal-name title-text">Unreal Engine</p>
+          <p class="unreal-sub">NATIVE_BT_EDITOR</p>
+        </div>
+      </div>
+      <p class="unreal-desc">
+        Offers a powerful, visual <strong>Behavior Tree</strong> editor out of the box. Includes live debugging (watch the tree execution in real-time) and Blackboard integration.
+      </p>
+    </div>
+
+    <!-- Mock Editor: SVG-based so it scales -->
+    <div class="mock-editor">
+      <div class="editor-label">BP_EnemyAI_Tree</div>
+      <svg viewBox="0 0 300 220" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" font-family="'Roboto Mono',monospace">
+        <!-- Connector lines -->
+        <line x1="150" y1="42" x2="150" y2="78" stroke="#8B949E" stroke-width="1.5" stroke-opacity="0.5"/>
+        <line x1="150" y1="100" x2="80"  y2="138" stroke="#8B949E" stroke-width="1.5" stroke-opacity="0.5"/>
+        <line x1="150" y1="100" x2="220" y2="138" stroke="#8B949E" stroke-width="1.5" stroke-opacity="0.5"/>
+
+        <!-- ROOT node -->
+        <rect x="100" y="18" width="100" height="38" rx="4" fill="#161B22" stroke="#FFD700" stroke-width="1.5"/>
+        <rect x="100" y="18" width="100" height="5" rx="2" fill="#FFD700"/>
+        <text x="150" y="38" fill="white" font-size="11" font-weight="bold" text-anchor="middle">ROOT</text>
+
+        <!-- Selector node -->
+        <rect x="100" y="78" width="100" height="38" rx="4" fill="#161B22" stroke="#58A6FF" stroke-width="1.5"/>
+        <rect x="100" y="78" width="100" height="5" rx="2" fill="#58A6FF"/>
+        <text x="150" y="98" fill="white" font-size="11" font-weight="bold" text-anchor="middle">Selector</text>
+
+        <!-- Sequence node -->
+        <rect x="30" y="138" width="100" height="42" rx="4" fill="#161B22" stroke="#39D353" stroke-width="1.5"/>
+        <rect x="30" y="138" width="100" height="5" rx="2" fill="#39D353"/>
+        <text x="80" y="156" fill="white" font-size="11" font-weight="bold" text-anchor="middle">Sequence</text>
+        <text x="80" y="170" fill="#8B949E" font-size="8" text-anchor="middle">HasTarget?</text>
+
+        <!-- Patrol node -->
+        <rect x="170" y="138" width="100" height="42" rx="4" fill="#161B22" stroke="#39D353" stroke-width="1.5"/>
+        <rect x="170" y="138" width="100" height="5" rx="2" fill="#39D353"/>
+        <text x="220" y="156" fill="white" font-size="11" font-weight="bold" text-anchor="middle">Patrol</text>
+        <text x="220" y="170" fill="#8B949E" font-size="8" text-anchor="middle">Wait 5s</text>
+      </svg>
+      <div class="debug-badge">● DEBUGGING</div>
+    </div>
+  </div>
+
+  <!-- Right: Tools grid -->
+  <div class="tools-grid">
+
+    <!-- Unity -->
+    <div class="tool-card">
+      <div class="card-top">
+        <div class="card-icon"><i class="fab fa-unity" style="color:white"></i></div>
+        <span class="tech-pill tag-engine">GAME ENGINE</span>
+      </div>
+      <p class="card-title">Unity</p>
+      <p class="card-desc">
+        Historically relied on assets like <strong>NodeCanvas</strong> or <strong>Behavior Designer</strong>.
+        <span>Newer versions (2023+) are introducing built-in graph tools for AI.</span>
+      </p>
+    </div>
+
+    <!-- BehaviorTree.CPP -->
+    <div class="tool-card">
+      <div class="card-top">
+        <div class="card-icon" style="color:var(--cyan);border-color:rgba(121,192,255,0.3);background:rgba(121,192,255,0.08)"><i class="fas fa-code"></i></div>
+        <span class="tech-pill tag-lib">C++ LIBRARY</span>
+      </div>
+      <p class="card-title">BehaviorTree.CPP</p>
+      <p class="card-desc">
+        The standard for robotics (ROS 2) and custom engines.
+        <span>Fast, lightweight, and header-only options available.</span>
+      </p>
+    </div>
+
+    <!-- py_trees -->
+    <div class="tool-card">
+      <div class="card-top">
+        <div class="card-icon" style="color:var(--gold);border-color:rgba(255,215,0,0.3);background:rgba(255,215,0,0.08)"><i class="fab fa-python"></i></div>
+        <span class="tech-pill tag-lib">PYTHON LIB</span>
+      </div>
+      <p class="card-title">py_trees</p>
+      <p class="card-desc">
+        Excellent for prototyping, research, and non-realtime simulations.
+        <span>Great for learning the concepts without engine overhead.</span>
+      </p>
+    </div>
+
+    <!-- AAA In-House -->
+    <div class="tool-card">
+      <div class="card-top">
+        <div class="card-icon" style="color:var(--red);border-color:rgba(255,71,87,0.3);background:rgba(255,71,87,0.08)"><i class="fas fa-building"></i></div>
+        <span class="tech-pill tag-custom">PROPRIETARY</span>
+      </div>
+      <p class="card-title">AAA In-House Tools</p>
+      <p class="card-desc">
+        Studios like Naughty Dog (DCLE), Guerrilla (Decima), and Ubisoft (Snowdrop) build custom BT editors tailored to their specific gameplay needs.
+      </p>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <a href="slide15.html">SLIDE_15</a>
+</footer>
+</body>
+</html>

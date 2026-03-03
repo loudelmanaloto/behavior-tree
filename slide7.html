@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Node Types Deep Dive</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --blue:   #58A6FF;
+    --green:  #39D353;
+    --gold:   #FFD700;
+    --red:    #FF4757;
+    --purple: #A371F7;
+    --bg:     #0D1117;
+    --bg-alt: #010409;
+    --surface: #161B22;
+    --border: #30363D;
+    --text-muted: #8B949E;
+    --text-secondary: #C9D1D9;
+    --text-primary: #E6EDF3;
+  }
+
+  body {
+    margin: 0; padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+  }
+
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.1;
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 0L1 40' stroke='%2358A6FF' stroke-width='1'/%3E%3Cpath d='M0 1L40 1' stroke='%2358A6FF' stroke-width='1'/%3E%3C/svg%3E");
+  }
+
+  .title-text { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Header */
+  header {
+    position: relative; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 clamp(1rem, 4vw, 3rem);
+    height: clamp(3.5rem, 8vh, 5rem);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+
+  .header-left { display: flex; align-items: center; gap: 1rem; }
+
+  .header-icon {
+    width: 2.5rem; height: 2.5rem; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; background: rgba(88,166,255,0.1); border: 1px solid var(--blue);
+    color: var(--blue); font-size: 1rem;
+  }
+
+  header h1 { font-size: clamp(1rem, 2.5vw, 1.5rem); font-weight: 700; margin: 0; color: white; }
+  header p  { font-family: 'Roboto Mono', monospace; font-size: clamp(0.55rem, 1vw, 0.7rem); color: var(--blue); letter-spacing: 0.1em; margin: 0; }
+
+  .sys-badge {
+    font-family: 'Roboto Mono', monospace; font-size: clamp(0.55rem, 1vw, 0.7rem);
+    color: var(--text-muted); border: 1px solid var(--border); padding: 0.25rem 0.75rem;
+    border-radius: 4px; white-space: nowrap;
+  }
+
+  /* Main Layout */
+  main {
+    flex: 1; display: flex; position: relative; z-index: 10; min-height: 0; overflow: hidden;
+  }
+
+  /* Left Panel */
+  .left-panel {
+    width: clamp(220px, 28%, 380px); flex-shrink: 0;
+    display: flex; flex-direction: column;
+    padding: clamp(1rem, 3vw, 2.5rem);
+    background: rgba(13,17,23,0.8);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+  }
+
+  .left-panel h2 {
+    font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+    font-weight: 700; color: white; margin: 0 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+
+  .section-label {
+    font-size: clamp(0.65rem, 1vw, 0.75rem);
+    color: var(--text-primary); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin: 0 0 0.5rem;
+  }
+
+  .tech-bullet { display: flex; align-items: flex-start; margin-bottom: 0.6rem; }
+  .tech-bullet-marker {
+    min-width: 6px; height: 6px; background: var(--blue);
+    margin-top: 7px; margin-right: 10px;
+    box-shadow: 0 0 4px var(--blue); flex-shrink: 0;
+  }
+  .tech-bullet p { font-size: clamp(0.7rem, 1.1vw, 0.8rem); color: var(--text-muted); margin: 0; line-height: 1.5; }
+  .tech-bullet strong { color: var(--text-primary); }
+
+  .quick-ref {
+    background: var(--surface); padding: clamp(0.5rem, 1.5vw, 1rem);
+    border-radius: 6px; border: 1px solid var(--border); margin-top: 1rem;
+  }
+  .quick-ref h3 { font-family: 'Roboto Mono', monospace; font-size: 0.65rem; color: var(--blue); margin: 0 0 0.5rem; }
+  .quick-ref-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem; }
+  .quick-ref-grid span { font-family: 'Roboto Mono', monospace; font-size: clamp(0.6rem, 1vw, 0.7rem); color: var(--text-muted); }
+
+  /* Right Panel */
+  .right-panel {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column;
+    padding: clamp(1rem, 2.5vw, 2.5rem);
+    background: var(--bg-alt);
+    overflow-y: auto;
+  }
+
+  .section-header {
+    font-family: 'Roboto Mono', monospace;
+    font-size: clamp(0.6rem, 1vw, 0.7rem);
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em;
+    margin: 0 0 clamp(0.5rem, 1.5vh, 1rem);
+  }
+
+  /* Node Cards */
+  .node-card {
+    background: rgba(30,41,59,0.4);
+    border: 1px solid rgba(48,54,61,0.5);
+    border-radius: 6px;
+    transition: border-color 0.2s, background 0.2s;
+    padding: clamp(0.75rem, 2vw, 1.25rem);
+  }
+  .node-card:hover { border-color: rgba(88,166,255,0.5); background: rgba(30,41,59,0.6); }
+
+  .accent-selector { border-left: 4px solid var(--blue); }
+  .accent-sequence { border-left: 4px solid var(--green); }
+  .accent-condition { border-left: 4px solid var(--gold); }
+  .accent-action    { border-left: 4px solid var(--red); }
+  .accent-decorator { border-left: 4px solid var(--purple); }
+
+  .composites-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(0.5rem, 2vw, 1.5rem); margin-bottom: clamp(1rem, 2.5vh, 2.5rem); }
+  .leaves-grid     { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(0.5rem, 2vw, 1.5rem); }
+
+  @media (max-width: 900px) {
+    .leaves-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+  .card-title-group { display: flex; align-items: center; gap: 0.6rem; }
+
+  .node-icon {
+    width: clamp(1.8rem, 3vw, 2.5rem); height: clamp(1.8rem, 3vw, 2.5rem);
+    border-radius: 4px; display: flex; align-items: center; justify-content: center;
+    font-family: 'Roboto Mono', monospace; font-size: clamp(0.9rem, 1.5vw, 1.25rem); font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .node-icon-sm {
+    width: clamp(1.5rem, 2.5vw, 2rem); height: clamp(1.5rem, 2.5vw, 2rem);
+    border-radius: 4px; display: flex; align-items: center; justify-content: center;
+    font-size: clamp(0.7rem, 1.2vw, 0.9rem); flex-shrink: 0;
+  }
+
+  .card-name { font-family: 'Roboto Mono', monospace; font-weight: 700; color: white; font-size: clamp(0.8rem, 1.5vw, 1rem); margin: 0; }
+  .card-subtitle { font-size: clamp(0.6rem, 1vw, 0.7rem); margin: 0; }
+
+  .logic-tag {
+    font-family: 'Roboto Mono', monospace; font-size: 0.55rem;
+    border: 1px solid; padding: 0.15rem 0.4rem; border-radius: 3px; white-space: nowrap;
+  }
+
+  .card-desc { font-size: clamp(0.65rem, 1vw, 0.8rem); color: var(--text-secondary); margin: 0.4rem 0 0.6rem; }
+  .card-desc strong { color: white; }
+
+  .mini-svg-box {
+    background: var(--bg); border-radius: 4px; border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    padding: 0.25rem; overflow: hidden;
+  }
+  .mini-svg-box svg { max-width: 200px; height: 50px; }
+
+  .code-snippet {
+    background: var(--bg); border-radius: 4px; border: 1px solid var(--border);
+    padding: 0.4rem 0.6rem; margin-top: 0.4rem;
+    font-family: 'Roboto Mono', monospace; font-size: clamp(0.6rem, 1vw, 0.7rem);
+  }
+
+  /* Mobile stack */
+  @media (max-width: 640px) {
+    main { flex-direction: column; overflow: auto; }
+    .left-panel { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+    .composites-grid { grid-template-columns: 1fr; }
+    .leaves-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Footer */
+  footer {
+    height: 2.5rem; background: var(--bg); border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 0 2rem; z-index: 20; position: relative; flex-shrink: 0;
+  }
+  footer a { font-family: 'Roboto Mono', monospace; color: var(--blue); font-size: 0.75rem; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<header>
+  <div class="header-left">
+    <div class="header-icon"><i class="fas fa-sitemap"></i></div>
+    <div>
+      <h1 class="title-text">Node Types Deep Dive</h1>
+      <p>COMPONENT_ANALYSIS // STRUCTURAL_BLOCKS</p>
+    </div>
+  </div>
+  <div class="sys-badge">SYS.NODE_DB_V2</div>
+</header>
+
+<main>
+  <!-- Left Panel -->
+  <div class="left-panel">
+    <h2 class="title-text">
+      <i class="fas fa-microchip" style="color:var(--green)"></i> Logic Flow
+    </h2>
+    <p class="section-label">Core Concepts</p>
+    <div>
+      <div class="tech-bullet">
+        <div class="tech-bullet-marker"></div>
+        <p><strong>Traversal:</strong> The tree is processed Depth-First, Left-to-Right each tick.</p>
+      </div>
+      <div class="tech-bullet">
+        <div class="tech-bullet-marker"></div>
+        <p><strong>Control Flow:</strong> Composite nodes (Selector, Sequence) decide <em>which</em> branch runs.</p>
+      </div>
+      <div class="tech-bullet">
+        <div class="tech-bullet-marker"></div>
+        <p><strong>Execution:</strong> Leaf nodes (Action, Condition) do the actual work.</p>
+      </div>
+    </div>
+    <div class="quick-ref">
+      <h3>QUICK_REFERENCE</h3>
+      <div class="quick-ref-grid">
+        <span>? = OR Logic</span>
+        <span>→ = AND Logic</span>
+        <span>◆ = Check</span>
+        <span>⚡ = Do</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="right-panel">
+    <!-- Composites -->
+    <p class="section-header">Composite Nodes (Control Flow)</p>
+    <div class="composites-grid">
+
+      <!-- Selector -->
+      <div class="node-card accent-selector">
+        <div class="card-top">
+          <div class="card-title-group">
+            <div class="node-icon" style="background:rgba(88,166,255,0.1);color:var(--blue)">?</div>
+            <div>
+              <p class="card-name">Selector</p>
+              <p class="card-subtitle" style="color:var(--blue)">Fallback / Priority</p>
+            </div>
+          </div>
+          <span class="logic-tag" style="color:var(--blue);border-color:var(--blue)">OR LOGIC</span>
+        </div>
+        <p class="card-desc">Tries children in order. Succeeds if <strong>ANY</strong> child succeeds.</p>
+        <div class="mini-svg-box">
+          <svg viewBox="0 0 200 50" xmlns="http://www.w3.org/2000/svg">
+            <rect fill="#58A6FF" x="20" y="15" width="20" height="20" opacity="0.8" rx="2"/>
+            <text fill="white" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" x="30" y="29">?</text>
+            <path d="M40 25 L80 15" fill="none" stroke="#58A6FF" stroke-width="1.5"/>
+            <path d="M40 25 L80 35" fill="none" stroke="#30363D" stroke-dasharray="2 2" stroke-width="1.5"/>
+            <rect fill="#161B22" x="80" y="5" width="100" height="18" rx="2" stroke="#FF4757" stroke-width="1"/>
+            <text fill="#FF4757" font-family="monospace" font-size="10" text-anchor="middle" x="130" y="18">FAIL → NEXT</text>
+            <rect fill="#161B22" x="80" y="27" width="100" height="18" rx="2" stroke="#39D353" stroke-width="1"/>
+            <text fill="#39D353" font-family="monospace" font-size="10" text-anchor="middle" x="130" y="40">SUCCESS → STOP</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Sequence -->
+      <div class="node-card accent-sequence">
+        <div class="card-top">
+          <div class="card-title-group">
+            <div class="node-icon" style="background:rgba(57,211,83,0.1);color:var(--green)">→</div>
+            <div>
+              <p class="card-name">Sequence</p>
+              <p class="card-subtitle" style="color:var(--green)">Strict Order</p>
+            </div>
+          </div>
+          <span class="logic-tag" style="color:var(--green);border-color:var(--green)">AND LOGIC</span>
+        </div>
+        <p class="card-desc">Runs children in order. Fails if <strong>ANY</strong> child fails.</p>
+        <div class="mini-svg-box">
+          <svg viewBox="0 0 200 50" xmlns="http://www.w3.org/2000/svg">
+            <rect fill="#39D353" x="20" y="15" width="20" height="20" opacity="0.8" rx="2"/>
+            <text fill="#0D1117" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" x="30" y="29">→</text>
+            <path d="M40 25 L65 25" fill="none" stroke="#39D353" stroke-width="1.5"/>
+            <path d="M125 25 L145 25" fill="none" stroke="#39D353" stroke-width="1.5"/>
+            <rect fill="#161B22" x="65" y="15" width="60" height="20" rx="2" stroke="#39D353" stroke-width="1"/>
+            <text fill="#39D353" font-family="monospace" font-size="10" text-anchor="middle" x="95" y="29">Step 1</text>
+            <rect fill="#161B22" x="145" y="15" width="40" height="20" rx="2" stroke="#30363D" stroke-width="1"/>
+            <text fill="#555" font-family="monospace" font-size="10" text-anchor="middle" x="165" y="29">Step 2</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leaves & Decorators -->
+    <p class="section-header">Leaf Nodes &amp; Modifiers</p>
+    <div class="leaves-grid">
+
+      <!-- Condition -->
+      <div class="node-card accent-condition">
+        <div class="card-title-group" style="margin-bottom:0.5rem">
+          <div class="node-icon-sm" style="background:rgba(255,215,0,0.1);color:var(--gold)">
+            <i class="fas fa-question"></i>
+          </div>
+          <p class="card-name">Condition</p>
+        </div>
+        <p class="card-desc" style="margin-bottom:0.4rem">Instant boolean check.</p>
+        <div class="code-snippet" style="color:var(--gold)">IsEnemyVisible?</div>
+      </div>
+
+      <!-- Action -->
+      <div class="node-card accent-action">
+        <div class="card-title-group" style="margin-bottom:0.5rem">
+          <div class="node-icon-sm" style="background:rgba(255,71,87,0.1);color:var(--red)">
+            <i class="fas fa-bolt"></i>
+          </div>
+          <p class="card-name">Action</p>
+        </div>
+        <p class="card-desc" style="margin-bottom:0.4rem">Performs game logic.</p>
+        <div class="code-snippet" style="color:var(--red)">MoveTo(Player)</div>
+      </div>
+
+      <!-- Decorator -->
+      <div class="node-card accent-decorator">
+        <div class="card-title-group" style="margin-bottom:0.5rem">
+          <div class="node-icon-sm" style="background:rgba(163,113,247,0.1);color:var(--purple)">
+            <i class="fas fa-gem"></i>
+          </div>
+          <p class="card-name">Decorator</p>
+        </div>
+        <p class="card-desc" style="margin-bottom:0.4rem">Wraps child to modify result.</p>
+        <div class="code-snippet" style="color:var(--purple)">Inverter (NOT)</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <a href="slide8.html">SLIDE_08</a>
+</footer>
+</body>
+</html>

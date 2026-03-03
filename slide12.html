@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Real Game Usage: Halo 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --green:  #39D353;
+    --blue:   #58A6FF;
+    --gold:   #FFD700;
+    --red:    #FF4757;
+    --bg:     #0D1117;
+    --bg-alt: #010409;
+    --surface: #161B22;
+    --border: #30363D;
+    --text-muted: #8B949E;
+    --text-secondary: #C9D1D9;
+    --text-primary: #E6EDF3;
+  }
+
+  body {
+    margin: 0; padding: 0;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    background-color: var(--bg);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+  }
+
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0z' fill='%230D1117' fill-opacity='1'/%3E%3Cpath d='M0 39h40v1H0z' fill='%2358A6FF' fill-opacity='0.05'/%3E%3Cpath d='M39 0v40h1V0z' fill='%2358A6FF' fill-opacity='0.05'/%3E%3C/svg%3E");
+  }
+
+  .title-text { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Main layout */
+  main {
+    flex: 1; display: flex; position: relative; z-index: 10;
+    padding: clamp(1.25rem, 4vw, 3rem);
+    gap: clamp(1rem, 3vw, 3rem);
+    align-items: center;
+    min-height: 0;
+  }
+
+  /* Left Column */
+  .left-col { flex: 0 0 auto; width: min(42%, 500px); display: flex; flex-direction: column; justify-content: center; }
+
+  .eyebrow { display: flex; align-items: center; gap: 0.5rem; color: var(--green); margin-bottom: 0.5rem; }
+  .eyebrow p { font-family: 'Roboto Mono', monospace; font-size: clamp(0.6rem, 1.1vw, 0.75rem); letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.8; margin: 0; }
+
+  h2 { font-size: clamp(1.8rem, 4.5vw, 3rem); font-weight: 700; margin: 0 0 1rem; line-height: 1.1; }
+
+  .accent-bar { height: 4px; width: 5rem; background: var(--green); box-shadow: 0 0 10px var(--green); margin-bottom: clamp(1rem, 3vh, 2rem); border-radius: 2px; }
+
+  .bullets { display: flex; flex-direction: column; gap: clamp(0.75rem, 2vh, 1.25rem); }
+
+  .bullet-point { position: relative; padding-left: 1.5rem; }
+  .bullet-point::before {
+    content: ''; position: absolute; left: 0; top: 8px;
+    width: 8px; height: 8px; background: var(--green);
+    transform: rotate(45deg); box-shadow: 0 0 8px rgba(57,211,83,0.6);
+  }
+  .bullet-point strong { display: block; font-size: clamp(0.8rem, 1.4vw, 0.95rem); color: white; margin-bottom: 0.2rem; }
+  .bullet-point p { font-size: clamp(0.7rem, 1.1vw, 0.8rem); color: var(--text-muted); margin: 0; line-height: 1.5; }
+
+  /* Right Column */
+  .right-col { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; }
+
+  /* Debug Window */
+  .debug-window {
+    font-family: 'Roboto Mono', monospace;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    overflow: hidden;
+    width: 100%;
+    max-width: 620px;
+    display: flex; flex-direction: column;
+  }
+
+  .debug-toolbar {
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    padding: 0.4rem 0.75rem;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: clamp(0.55rem, 0.9vw, 0.7rem);
+    flex-shrink: 0; flex-wrap: wrap; gap: 0.25rem;
+  }
+  .toolbar-left { display: flex; gap: 1rem; align-items: center; }
+  .toolbar-right { display: flex; gap: 0.75rem; color: var(--text-muted); }
+
+  .debug-body { display: flex; flex: 1; min-height: 0; background: var(--bg-alt); }
+
+  /* Map panel */
+  .map-panel {
+    flex: 1; min-width: 0; position: relative; overflow: hidden;
+    border-right: 1px solid var(--border);
+  }
+
+  .map-grid {
+    position: absolute; inset: 0; opacity: 0.2;
+    background-image: radial-gradient(var(--green) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+  }
+
+  .map-panel svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  .map-coords {
+    position: absolute; top: 0.5rem; left: 0.5rem;
+    font-size: clamp(0.5rem, 0.8vw, 0.62rem); color: var(--blue); opacity: 0.7;
+    font-family: 'Roboto Mono', monospace; line-height: 1.6;
+  }
+
+  @keyframes pulse-ring {
+    0%   { transform: scale(0.8); opacity: 0.5; }
+    100% { transform: scale(1.5); opacity: 0; }
+  }
+  .pulse-marker {
+    position: absolute; width: 18px; height: 18px;
+    border-radius: 50%; border: 2px solid var(--green);
+    animation: pulse-ring 2s infinite;
+    top: 67%; left: 35%;
+  }
+
+  /* Tree panel */
+  .tree-panel {
+    width: clamp(120px, 28%, 180px); flex-shrink: 0;
+    background: var(--bg); padding: clamp(0.5rem, 1.5vw, 1rem);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  .tree-section-label {
+    font-size: clamp(0.5rem, 0.8vw, 0.62rem);
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 0.4rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .tree-node {
+    background: var(--bg); border: 1px solid var(--border);
+    padding: 3px 6px; margin-bottom: 3px;
+    font-size: clamp(0.5rem, 0.8vw, 0.65rem);
+    display: flex; align-items: center; position: relative;
+  }
+  .tree-node.active {
+    border-color: var(--green); background: rgba(57,211,83,0.08); color: var(--green);
+  }
+  .tree-node.faded { opacity: 0.45; }
+
+  .active-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--green); }
+
+  .running-badge {
+    margin-left: auto; font-size: clamp(0.4rem, 0.65vw, 0.55rem);
+    background: var(--green); color: black; padding: 1px 4px; border-radius: 2px; white-space: nowrap;
+  }
+
+  .tree-connector { border-left: 1px dashed var(--border); margin-left: 8px; padding-left: 8px; }
+
+  .blackboard {
+    margin-top: auto; padding-top: 0.4rem; border-top: 1px solid var(--border); flex-shrink: 0;
+  }
+  .blackboard-label {
+    font-size: clamp(0.45rem, 0.75vw, 0.6rem);
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem;
+  }
+  .blackboard-data {
+    background: var(--surface); padding: 0.35rem; border-radius: 3px;
+    font-size: clamp(0.45rem, 0.75vw, 0.6rem); color: var(--green); line-height: 1.8;
+  }
+
+  /* Animated path */
+  @keyframes dash { to { stroke-dashoffset: -1000; } }
+  .path-line { stroke-dasharray: 10; animation: dash 20s linear infinite; }
+
+  /* Mobile stack */
+  @media (max-width: 720px) {
+    main { flex-direction: column; padding: 1.25rem; gap: 1.5rem; }
+    .left-col { width: 100%; }
+    .right-col { width: 100%; }
+    .debug-window { max-width: 100%; }
+  }
+
+  /* Footer */
+  footer {
+    height: 2.5rem; background: var(--bg-alt); border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 0 2rem; z-index: 20; position: relative; flex-shrink: 0;
+  }
+  footer a { font-family: 'Roboto Mono', monospace; color: var(--blue); font-size: 0.75rem; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<main>
+  <!-- Left Column -->
+  <div class="left-col">
+    <div class="eyebrow">
+      <i class="fas fa-history" style="font-size:0.8rem"></i>
+      <p>CASE STUDY: 2004</p>
+    </div>
+    <h2 class="title-text">
+      Real Game Usage:<br/>
+      <span style="color:var(--green);filter:drop-shadow(0 0 10px rgba(57,211,83,0.5))">HALO 2</span>
+    </h2>
+    <div class="accent-bar"></div>
+
+    <div class="bullets">
+      <div class="bullet-point">
+        <strong>First Major Commercial Use</strong>
+        <p>Designed by Damian Isla at Bungie, moving away from rigid scripting to dynamic decisions.</p>
+      </div>
+      <div class="bullet-point">
+        <strong>Behavior Profiles</strong>
+        <p>Enabled distinct personalities: <span style="color:var(--green)">Elites</span> flank and suppress; <span style="color:var(--blue)">Grunts</span> panic and flee.</p>
+      </div>
+      <div class="bullet-point">
+        <strong>Dynamic Coordination</strong>
+        <p>NPCs could communicate state changes (e.g., "Player Spotted") to trigger group behaviors.</p>
+      </div>
+      <div class="bullet-point">
+        <strong>Production Proven</strong>
+        <p>Proved that Behavior Trees could handle the CPU constraints of consoles (Xbox) effectively.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Debug window -->
+  <div class="right-col">
+    <div class="debug-window">
+      <!-- Toolbar -->
+      <div class="debug-toolbar">
+        <div class="toolbar-left">
+          <span style="color:var(--green);font-weight:700">BUNGIE_AI_DEBUGGER_v2.1</span>
+          <span style="color:var(--text-muted)">ENTITY_ID: <span style="color:white">ELITE_MAJOR_04</span></span>
+        </div>
+        <div class="toolbar-right">
+          <span>CPU: 0.04ms</span>
+          <span>STATE: <span style="color:var(--green)">ACTIVE</span></span>
+        </div>
+      </div>
+
+      <!-- Body: map + tree -->
+      <div class="debug-body" style="min-height: clamp(220px, 35vh, 420px)">
+
+        <!-- Map -->
+        <div class="map-panel">
+          <div class="map-grid"></div>
+          <svg viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+            <!-- Cover -->
+            <rect x="100" y="150" width="40" height="40" fill="#30363D" stroke="#58A6FF" stroke-width="1"/>
+            <rect x="250" y="200" width="60" height="20" fill="#30363D" stroke="#58A6FF" stroke-width="1"/>
+            <!-- Player -->
+            <circle cx="120" cy="300" r="8" fill="#FF4757"/>
+            <text x="135" y="305" fill="#FF4757" font-family="Roboto Mono" font-size="10">MASTER_CHIEF</text>
+            <!-- Elite -->
+            <g transform="translate(280,100)">
+              <circle r="10" fill="#39D353" fill-opacity="0.2"/>
+              <polygon points="0,-8 7,7 -7,7" fill="#39D353" transform="rotate(135)"/>
+            </g>
+            <text x="295" y="105" fill="#39D353" font-family="Roboto Mono" font-size="10">ELITE_AI</text>
+            <!-- Flanking path -->
+            <path class="path-line" d="M280 100 Q350 150 290 220 T150 280" fill="none" stroke="#39D353" stroke-width="2"/>
+            <!-- Vision cone -->
+            <path d="M280 100 L120 300 L100 280 Z" fill="#39D353" fill-opacity="0.06"/>
+          </svg>
+          <div class="map-coords">COORD: 142.5, 88.2<br/>NAV_MESH: VALID</div>
+          <div class="pulse-marker"></div>
+        </div>
+
+        <!-- Tree panel -->
+        <div class="tree-panel">
+          <p class="tree-section-label">Decision Logic</p>
+          <div style="font-family:'Roboto Mono',monospace">
+            <div class="tree-node">
+              <span style="color:var(--gold);margin-right:0.3rem">ROOT</span>
+            </div>
+            <div class="tree-connector">
+              <div class="tree-node">
+                <span style="color:var(--blue);margin-right:0.3rem">?</span>
+                <span style="font-size:0.9em">Combat_Sel</span>
+              </div>
+              <div class="tree-connector">
+                <div class="tree-node faded">
+                  <span style="color:var(--red);margin-right:0.3rem">✕</span>
+                  <span style="font-size:0.9em">Melee</span>
+                </div>
+                <div class="tree-node active">
+                  <div class="active-bar"></div>
+                  <span style="margin-right:0.3rem">⚡</span>
+                  <span style="font-size:0.9em">Flank_L</span>
+                  <span class="running-badge">RUN</span>
+                </div>
+                <div class="tree-node faded">
+                  <span style="color:var(--gold);margin-right:0.3rem">◆</span>
+                  <span style="font-size:0.9em">Cover</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="blackboard">
+            <p class="blackboard-label">Blackboard</p>
+            <div class="blackboard-data">
+              <div>DIST: 15.4m</div>
+              <div>WEAPON: TRUE</div>
+              <div>SHIELD: 85%</div>
+              <div>SEEN: 0.2s</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <a href="slide13.html">SLIDE_13</a>
+</footer>
+</body>
+</html>

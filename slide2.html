@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The Problem with Traditional AI</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+
+<style>
+body{
+  margin:0;
+  background:#0d1117;
+  font-family:Inter,sans-serif;
+  color:#e6edf3;
+}
+
+/* HUD Background */
+.hud-grid{
+  background-image:
+    linear-gradient(rgba(88,166,255,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(88,166,255,.03) 1px,transparent 1px);
+  background-size:40px 40px;
+  position:absolute;
+  inset:0;
+  z-index:0;
+}
+
+.title-text{
+  font-family:Rajdhani,sans-serif;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+
+.bullet-point{
+  position:relative;
+  padding-left:24px;
+}
+
+.bullet-point::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:10px;
+  width:8px;
+  height:8px;
+  background:#ff4757;
+  transform:rotate(45deg);
+  box-shadow:0 0 8px rgba(255,71,87,.6);
+}
+
+.code-window{
+  font-family:"Roboto Mono",monospace;
+  background:#161b22;
+  border:1px solid #30363d;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.code-line{
+  display:flex;
+  align-items:center;
+  height:24px;
+  font-size:13px;
+  color:#8b949e;
+  padding:0 12px;
+}
+
+.line-num{
+  width:30px;
+  text-align:right;
+  margin-right:12px;
+  color:#484f58;
+  user-select:none;
+}
+
+.syntax-kwd{ color:#ff7b72; }
+.syntax-fn{ color:#d2a8ff; }
+.syntax-str{ color:#a5d6ff; }
+.syntax-var{ color:#79c0ff; }
+
+.spaghetti-overlay{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+
+.tangled-path{
+  fill:none;
+  stroke:#ff4757;
+  stroke-width:2;
+  stroke-dasharray:5,5;
+  opacity:.6;
+  animation:pulse-line 3s infinite;
+}
+
+@keyframes pulse-line{
+  0%{opacity:.4}
+  50%{opacity:.8}
+  100%{opacity:.4}
+}
+
+.warning-badge{
+  background:rgba(255,71,87,.1);
+  border:1px solid rgba(255,71,87,.4);
+  color:#ff4757;
+}
+</style>
+</head>
+
+<body class="relative flex flex-col min-h-screen w-full overflow-x-hidden">
+
+<div class="hud-grid"></div>
+
+<!-- MAIN -->
+<main class="relative z-10 flex flex-col lg:flex-row flex-1 p-6 lg:p-12 gap-10">
+
+<!-- LEFT CONTENT -->
+<div class="w-full lg:w-5/12 flex flex-col justify-center space-y-8">
+
+<div>
+<div class="flex items-center space-x-2 text-[#FF4757] mb-2">
+<i class="fas fa-exclamation-triangle text-sm"></i>
+<p class="font-mono text-xs lg:text-sm uppercase tracking-widest opacity-80">
+Legacy Systems
+</p>
+</div>
+
+<h2 class="title-text font-bold leading-tight text-white
+text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
+The Problem with<br/>
+<span class="text-[#FF4757]">Traditional AI</span>
+</h2>
+
+<div class="h-1 w-16 bg-[#FF4757] shadow-[0_0_10px_#FF4757] mt-4"></div>
+</div>
+
+<!-- Bullet Points -->
+<div class="space-y-5 text-sm lg:text-lg text-[#C9D1D9] font-light">
+
+<div class="bullet-point">
+<p class="font-semibold text-white">Hardcoded Rules</p>
+<p class="text-xs lg:text-sm text-[#8B949E]">
+Rigid logic scripts cannot adapt to player behavior.
+</p>
+</div>
+
+<div class="bullet-point">
+<p class="font-semibold text-white">Fragile Complexity</p>
+<p class="text-xs lg:text-sm text-[#8B949E]">
+Adding behaviors often breaks existing logic.
+</p>
+</div>
+
+<div class="bullet-point">
+<p class="font-semibold text-white">Maintenance Nightmare</p>
+<p class="text-xs lg:text-sm text-[#8B949E]">
+Spaghetti code makes debugging difficult.
+</p>
+</div>
+
+<div class="bullet-point">
+<p class="font-semibold text-white">No Logic Separation</p>
+<p class="text-xs lg:text-sm text-[#8B949E]">
+Movement, animation, and decisions are tightly coupled.
+</p>
+</div>
+
+</div>
+
+</div>
+
+<!-- RIGHT VISUAL -->
+<div class="w-full lg:w-7/12 flex items-center justify-center relative">
+
+<div class="code-window w-full max-w-2xl h-auto">
+
+<div class="bg-[#0D1117] px-4 py-2 flex items-center border-b border-[#30363D]">
+<div class="flex space-x-2 mr-4">
+<div class="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
+<div class="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
+<div class="w-3 h-3 rounded-full bg-[#27C93F]"></div>
+</div>
+<span class="text-xs font-mono text-[#8B949E]">
+EnemyAI_Legacy.cpp
+</span>
+</div>
+
+<div class="p-4 relative text-xs sm:text-sm">
+
+<div class="code-line"><span class="line-num">142</span><span class="syntax-kwd">void</span> UpdateAI() {</div>
+<div class="code-line"><span class="line-num">143</span><span class="syntax-kwd">if</span>(player.isVisible()) {</div>
+<div class="code-line"><span class="line-num">144</span><span class="syntax-kwd">if</span>(dist &lt; 10) Attack();</div>
+<div class="code-line"><span class="line-num">145</span><span class="syntax-kwd">else if</span>(health &lt; 20) RunAway();</div>
+<div class="code-line"><span class="line-num">146</span><span class="text-[#8B949E] italic">// Nested logic hell...</span></div>
+<div class="code-line"><span class="line-num">147</span>}</div>
+<div class="code-line"><span class="line-num">148</span>}</div>
+
+<svg class="spaghetti-overlay" width="100%" height="100%">
+<path class="tangled-path" d="M 300 120 C 400 150, 350 250, 200 230"/>
+<path class="tangled-path" d="M 150 90 C 80 180, 200 260, 260 200" style="animation-delay:.5s"/>
+</svg>
+
+<div class="absolute top-6 right-6 warning-badge px-3 py-1 rounded text-xs font-mono font-bold">
+<i class="fas fa-bug mr-1"></i> SPAGHETTI CODE
+</div>
+
+</div>
+</div>
+
+</div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="relative z-20 h-12 border-t border-[#30363D] flex items-center justify-end px-6 text-xs font-mono text-[#58A6FF] bg-[#010409]">
+<a href="slide3.html" class="hover:underline">SLIDE_03</a>
+</footer>
+
+</body>
+</html>

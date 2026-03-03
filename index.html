@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Behavior Trees in Game AI - Title Slide</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+<style>
+body{
+  margin:0;
+  background:#0D1117;
+  font-family:Inter,sans-serif;
+  color:#E6EDF3;
+}
+
+/* Background Grid */
+.hud-grid{
+  background-image:
+    linear-gradient(rgba(88,166,255,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(88,166,255,.05) 1px,transparent 1px);
+  background-size:40px 40px;
+  position:absolute;
+  inset:0;
+  z-index:0;
+}
+
+.title-text{
+  font-family:Rajdhani,sans-serif;
+  text-shadow:0 0 20px rgba(88,166,255,.4);
+}
+
+.glow-line{
+  height:2px;
+  background:#58A6FF;
+  box-shadow:0 0 10px #58A6FF;
+}
+
+.glass-panel{
+  background:rgba(13,17,23,.7);
+  backdrop-filter:blur(6px);
+  border:1px solid rgba(88,166,255,.2);
+}
+</style>
+
+</head>
+
+<body class="relative flex flex-col min-h-screen w-full overflow-x-hidden">
+
+<div class="hud-grid"></div>
+
+<!-- MAIN -->
+<main class="relative z-10 flex flex-col lg:flex-row flex-1 px-6 lg:px-16 pt-8 lg:pt-16 pb-8 gap-10">
+
+<!-- LEFT COLUMN -->
+<div class="w-full lg:w-5/12 flex flex-col justify-center space-y-8">
+
+<div>
+<div class="flex items-center space-x-2 text-[#58A6FF] mb-3">
+<span class="w-2 h-2 bg-[#39D353] rounded-full shadow-[0_0_8px_#39D353]"></span>
+<p class="font-mono text-xs lg:text-sm uppercase tracking-widest opacity-80">
+Game Dev Course 404
+</p>
+</div>
+
+<h1 class="title-text font-bold leading-tight text-white
+text-4xl sm:text-5xl md:text-6xl lg:text-7xl">
+BEHAVIOR<br/>
+<span style="color:#58A6FF;">TREES</span><br/>
+<span class="text-2xl sm:text-3xl md:text-4xl font-light text-gray-400">
+IN GAME AI
+</span>
+</h1>
+
+<div class="glow-line w-20 mt-6"></div>
+</div>
+
+<div class="glass-panel p-6 rounded-lg border-l-4 border-l-[#39D353]">
+<p class="text-lg lg:text-xl font-light">
+From Finite State Machines to Intelligent NPC Behavior
+</p>
+
+<p class="text-xs lg:text-sm text-gray-400 mt-4 font-mono">
+&gt; SYSTEM_INIT: AI_CONTROLLER<br/>
+&gt; LOADING_MODULE: DECISION_LOGIC
+</p>
+</div>
+
+<div>
+<p class="text-[#8B949E] text-xs uppercase tracking-wider mb-3 font-semibold">
+Agenda
+</p>
+
+<ul class="space-y-2 text-sm lg:text-base">
+<li class="flex items-center">
+<span class="text-[#58A6FF] mr-2">➜</span>
+Limitations of FSMs
+</li>
+
+<li class="flex items-center">
+<span class="text-[#58A6FF] mr-2">➜</span>
+Behavior Tree Anatomy
+</li>
+
+<li class="flex items-center">
+<span class="text-[#58A6FF] mr-2">➜</span>
+Case Studies: Modern Games
+</li>
+</ul>
+</div>
+
+</div>
+
+<!-- RIGHT COLUMN -->
+<div class="w-full lg:w-7/12 relative flex items-center justify-center min-h-[400px]">
+
+<div class="absolute w-[300px] sm:w-[400px] lg:w-[500px] h-[300px] sm:h-[400px] lg:h-[500px]
+rounded-full border border-[#58A6FF] opacity-10 animate-pulse"></div>
+
+<div class="absolute w-[250px] sm:w-[350px] lg:w-[400px] h-[250px] sm:h-[350px] lg:h-[400px]
+rounded-full border border-[#39D353] opacity-5"></div>
+
+<div id="tree-visual" class="w-full h-full"></div>
+
+</div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="relative z-20 h-12 border-t border-[#30363D]
+flex items-center justify-end px-6 text-xs font-mono text-[#58A6FF] bg-[#0D1117]">
+
+<a href="slide2.html" class="hover:underline">SLIDE_02</a>
+
+</footer>
+
+<script>
+
+const chartDom=document.getElementById("tree-visual");
+const myChart=echarts.init(chartDom);
+
+const data={
+name:"ROOT",
+symbolSize:20,
+itemStyle:{color:'#FFD700',shadowBlur:10,shadowColor:'#FFD700'},
+label:{color:'#FFD700',fontWeight:'bold'},
+
+children:[
+{
+name:"SELECTOR",
+itemStyle:{color:'#58A6FF',shadowBlur:10,shadowColor:'#58A6FF'},
+
+children:[
+{
+name:"COMBAT",
+itemStyle:{color:'#FF4757',shadowBlur:8,shadowColor:'#FF4757'},
+children:[
+{name:"ATTACK",itemStyle:{color:'#39D353'}},
+{name:"FLANK",itemStyle:{color:'#39D353'}}
+]
+},
+{
+name:"PATROL",
+itemStyle:{color:'#39D353',shadowBlur:8,shadowColor:'#39D353'},
+children:[
+{name:"WALK",itemStyle:{color:'#8B949E'}},
+{name:"WAIT",itemStyle:{color:'#8B949E'}}
+]
+}
+]
+}
+]
+};
+
+function getSymbolSize(){
+if(window.innerWidth<640) return 6;
+if(window.innerWidth<1024) return 8;
+return 10;
+}
+
+function renderChart(){
+
+myChart.setOption({
+backgroundColor:"transparent",
+
+tooltip:{trigger:"item"},
+
+series:[{
+type:"tree",
+data:[data],
+
+top:"8%",
+left:"8%",
+right:"8%",
+bottom:"8%",
+
+symbol:"circle",
+symbolSize:getSymbolSize(),
+
+orient:"TB",
+expandAndCollapse:false,
+initialTreeDepth:3,
+
+label:{
+position:"right",
+fontFamily:"Rajdhani",
+fontSize:12,
+distance:10
+},
+
+lineStyle:{
+color:"#30363D",
+width:2,
+curveness:.5
+},
+
+animationDurationUpdate:750
+}]
+});
+
+}
+
+renderChart();
+
+window.addEventListener("resize",()=>{
+renderChart();
+myChart.resize();
+});
+
+</script>
+
+</body>
+</html>

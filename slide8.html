@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Success, Failure, and Running States</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --blue:   #58A6FF;
+    --green:  #39D353;
+    --gold:   #FFD700;
+    --red:    #FF4757;
+    --bg:     #0D1117;
+    --bg-alt: #010409;
+    --surface: #161B22;
+    --border: #30363D;
+    --text-muted: #8B949E;
+    --text-secondary: #C9D1D9;
+    --text-primary: #E6EDF3;
+  }
+
+  body {
+    margin: 0; padding: 0;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    background-color: var(--bg);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+  }
+
+  .hud-grid {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 0h39v1H0V0h1zm0 1v39h-1V1h1z' stroke='%2358A6FF' stroke-width='1' stroke-opacity='0.05' fill='none'/%3E%3C/svg%3E");
+  }
+
+  .title-text { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Main layout */
+  main {
+    flex: 1; display: flex; position: relative; z-index: 10;
+    padding: clamp(1.25rem, 4vw, 3rem);
+    gap: clamp(1rem, 3vw, 3rem);
+    align-items: center;
+  }
+
+  /* Left Column */
+  .left-col { flex: 0 0 auto; width: min(44%, 520px); }
+
+  .eyebrow {
+    display: flex; align-items: center; gap: 0.5rem;
+    color: var(--gold); margin-bottom: 0.5rem;
+  }
+  .eyebrow p { font-family: 'Roboto Mono', monospace; font-size: clamp(0.6rem, 1.2vw, 0.75rem); letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.8; margin: 0; }
+
+  h2 { font-size: clamp(1.8rem, 4.5vw, 3rem); font-weight: 700; margin: 0 0 0.5rem; line-height: 1.1; }
+
+  .accent-bar { height: 4px; width: 5rem; background: var(--blue); box-shadow: 0 0 10px var(--blue); margin-bottom: clamp(1.25rem, 3vh, 2rem); border-radius: 2px; }
+
+  .bullets { display: flex; flex-direction: column; gap: clamp(0.75rem, 2vh, 1.5rem); }
+
+  .bullet-item { display: flex; align-items: flex-start; gap: 1rem; }
+
+  .bullet-icon { margin-top: 2px; width: 1.5rem; flex-shrink: 0; display: flex; justify-content: center; font-size: clamp(0.9rem, 1.8vw, 1.25rem); }
+
+  .bullet-title { font-weight: 700; color: white; margin: 0 0 0.2rem; font-size: clamp(0.8rem, 1.5vw, 1rem); }
+  .bullet-title .mono-hint { font-family: 'Roboto Mono', monospace; font-size: 0.65em; opacity: 0.5; font-weight: 400; margin-left: 0.5rem; }
+  .bullet-desc { font-size: clamp(0.7rem, 1.2vw, 0.85rem); color: var(--text-muted); margin: 0; line-height: 1.5; }
+
+  .divider-item { border-top: 1px solid var(--border); padding-top: clamp(0.75rem, 2vh, 1.25rem); }
+
+  .state-success { color: var(--green); text-shadow: 0 0 10px rgba(57,211,83,0.4); }
+  .state-failure { color: var(--red);   text-shadow: 0 0 10px rgba(255,71,87,0.4); }
+  .state-running { color: var(--gold);  text-shadow: 0 0 10px rgba(255,215,0,0.4); }
+
+  /* Right Column */
+  .right-col {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    min-width: 0;
+  }
+
+  /* SVG Diagram */
+  .diagram-svg-wrap {
+    width: 100%; max-width: 520px;
+  }
+  .diagram-svg-wrap svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+  /* Animations */
+  @keyframes pulse-running {
+    0%   { filter: drop-shadow(0 0 2px rgba(255,215,0,0.2)); }
+    50%  { filter: drop-shadow(0 0 8px rgba(255,215,0,0.5)); }
+    100% { filter: drop-shadow(0 0 2px rgba(255,215,0,0.2)); }
+  }
+  @keyframes dash-anim { to { stroke-dashoffset: -80; } }
+  @keyframes float-up {
+    0%   { transform: translateY(0);  opacity: 0.5; }
+    50%  { transform: translateY(-4px); opacity: 1; }
+    100% { transform: translateY(0);  opacity: 0.5; }
+  }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .dash-line { animation: dash-anim 4s linear infinite; }
+  .dash-line-rev { animation: dash-anim 4s linear infinite reverse; }
+  .running-badge { animation: pulse-running 2s ease-in-out infinite; }
+  .arrow-up-anim { animation: float-up 2s ease-in-out infinite; }
+
+  /* Stack on mobile */
+  @media (max-width: 720px) {
+    main { flex-direction: column; padding: 1.25rem; gap: 1.5rem; align-items: stretch; }
+    .left-col { width: 100%; }
+    .right-col { width: 100%; }
+  }
+
+  /* Footer */
+  footer {
+    height: 2.5rem; background: var(--bg-alt); border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 0 2rem; z-index: 20; position: relative; flex-shrink: 0;
+  }
+  footer a { font-family: 'Roboto Mono', monospace; color: var(--blue); font-size: 0.75rem; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="hud-grid"></div>
+
+<main>
+  <!-- Left Column -->
+  <div class="left-col">
+    <div class="eyebrow">
+      <i class="fas fa-microchip" style="font-size:0.85rem"></i>
+      <p>Execution Flow</p>
+    </div>
+    <h2 class="title-text">
+      Success, Failure,<br/>
+      <span style="color:var(--blue)">&amp; Running</span>
+    </h2>
+    <div class="accent-bar"></div>
+
+    <div class="bullets">
+      <div class="bullet-item">
+        <div class="bullet-icon"><i class="fas fa-check-circle state-success"></i></div>
+        <div>
+          <p class="bullet-title">SUCCESS <span class="mono-hint">return true;</span></p>
+          <p class="bullet-desc">The task completed successfully (e.g., "Enemy Dead", "Path Found"). The parent node advances.</p>
+        </div>
+      </div>
+      <div class="bullet-item">
+        <div class="bullet-icon"><i class="fas fa-times-circle state-failure"></i></div>
+        <div>
+          <p class="bullet-title">FAILURE <span class="mono-hint">return false;</span></p>
+          <p class="bullet-desc">The task failed or is impossible (e.g., "No Ammo", "Path Blocked"). The parent attempts alternatives.</p>
+        </div>
+      </div>
+      <div class="bullet-item">
+        <div class="bullet-icon"><i class="fas fa-sync-alt state-running" style="animation: spin 3s linear infinite;"></i></div>
+        <div>
+          <p class="bullet-title">RUNNING <span class="mono-hint">return running;</span></p>
+          <p class="bullet-desc">The task is in progress (e.g., "Moving..."). It will be ticked again next frame without blocking code.</p>
+        </div>
+      </div>
+      <div class="bullet-item divider-item">
+        <div class="bullet-icon" style="color:var(--blue)"><i class="fas fa-network-wired"></i></div>
+        <div>
+          <p class="bullet-title">State Propagation</p>
+          <p class="bullet-desc">These states bubble up the tree, allowing Composite nodes (Sequence/Selector) to control logic flow dynamically.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: SVG Diagram -->
+  <div class="right-col">
+    <div class="diagram-svg-wrap">
+      <!--
+        viewBox: 0 0 500 400
+        Parent node: centered at (250, 80)  — width 200, height 50
+        Child node:  centered at (250, 320) — width 200, height 50
+        Badges: FAILURE(90,210) RUNNING(180,190) SUCCESS(310,210)
+      -->
+      <svg viewBox="0 0 600 440" xmlns="http://www.w3.org/2000/svg">
+        <!--
+          viewBox: 600 wide, 440 tall
+          Parent node: center x=300, y=40–90
+          Child node:  center x=300, y=340–390
+          Junction Y (horizontal bar): y=240
+          Badge centers (y=195, badge height=38, so top=195 bottom=233, arrow at y=190):
+            FAILURE  cx=110  badge x=65..175
+            RUNNING  cx=300  badge x=255..365
+            SUCCESS  cx=490  badge x=445..555
+        -->
+
+        <!-- Vertical line: child → junction -->
+        <line x1="300" y1="340" x2="300" y2="240" stroke="#30363D" stroke-width="2" stroke-dasharray="6 4" class="dash-line"/>
+
+        <!-- Vertical line: junction → parent -->
+        <line x1="300" y1="90"  x2="300" y2="190" stroke="#30363D" stroke-width="2" stroke-dasharray="6 4" class="dash-line"/>
+
+        <!-- Horizontal bar at junction y=240, spanning badge centers -->
+        <line x1="110" y1="240" x2="490" y2="240" stroke="#30363D" stroke-width="2" stroke-dasharray="6 4" class="dash-line"/>
+
+        <!-- Vertical stubs: bar down to badge tops (badge top = 197) -->
+        <line x1="110" y1="240" x2="110" y2="197" stroke="#FF4757" stroke-width="1.5" stroke-opacity="0.7" stroke-dasharray="4 3" class="dash-line"/>
+        <line x1="300" y1="240" x2="300" y2="197" stroke="#FFD700" stroke-width="1.5" stroke-opacity="0.7" stroke-dasharray="4 3" class="dash-line"/>
+        <line x1="490" y1="240" x2="490" y2="197" stroke="#39D353" stroke-width="1.5" stroke-opacity="0.7" stroke-dasharray="4 3" class="dash-line"/>
+
+        <!-- PARENT NODE: x=200..400, y=40..90 -->
+        <rect x="200" y="40" width="200" height="50" rx="8" fill="#161B22" stroke="#58A6FF" stroke-width="2"/>
+        <text x="300" y="57" fill="#8B949E" font-size="9" text-anchor="middle" font-family="'Inter',sans-serif">PARENT (COMPOSITE)</text>
+        <text x="300" y="76" fill="#58A6FF" font-size="13" font-weight="bold" text-anchor="middle" font-family="'Roboto Mono',monospace">⎇ Selector (?)</text>
+
+        <!-- FAILURE BADGE: x=65..175, y=197..235 -->
+        <g class="arrow-up-anim">
+          <text x="110" y="190" fill="#FF4757" font-size="13" text-anchor="middle" font-family="'Roboto Mono',monospace">⌃</text>
+          <rect x="65" y="197" width="110" height="38" rx="4" fill="#0D1117" stroke="#FF4757" stroke-width="1.5"/>
+          <text x="110" y="221" fill="#FF4757" font-size="12" font-weight="bold" text-anchor="middle" font-family="'Rajdhani',sans-serif" letter-spacing="1">✕  FAILURE</text>
+        </g>
+
+        <!-- RUNNING BADGE: x=245..355, y=197..235 -->
+        <g class="running-badge arrow-up-anim" style="animation-delay:0.4s">
+          <text x="300" y="190" fill="#FFD700" font-size="13" text-anchor="middle" font-family="'Roboto Mono',monospace">⌃</text>
+          <rect x="245" y="197" width="110" height="38" rx="4" fill="#0D1117" stroke="#FFD700" stroke-width="1.5"/>
+          <text x="300" y="221" fill="#FFD700" font-size="12" font-weight="bold" text-anchor="middle" font-family="'Rajdhani',sans-serif" letter-spacing="1">↻  RUNNING</text>
+        </g>
+
+        <!-- SUCCESS BADGE: x=435..545, y=197..235 -->
+        <g class="arrow-up-anim" style="animation-delay:0.8s">
+          <text x="490" y="190" fill="#39D353" font-size="13" text-anchor="middle" font-family="'Roboto Mono',monospace">⌃</text>
+          <rect x="435" y="197" width="110" height="38" rx="4" fill="#0D1117" stroke="#39D353" stroke-width="1.5"/>
+          <text x="490" y="221" fill="#39D353" font-size="12" font-weight="bold" text-anchor="middle" font-family="'Rajdhani',sans-serif" letter-spacing="1">✓  SUCCESS</text>
+        </g>
+
+        <!-- CHILD NODE: x=200..400, y=340..390 -->
+        <rect x="200" y="340" width="200" height="50" rx="8" fill="#161B22" stroke="#E6EDF3" stroke-width="1.5" stroke-opacity="0.5"/>
+        <text x="300" y="357" fill="#8B949E" font-size="9" text-anchor="middle" font-family="'Inter',sans-serif">CHILD (LEAF)</text>
+        <text x="300" y="376" fill="#E6EDF3" font-size="13" font-weight="bold" text-anchor="middle" font-family="'Roboto Mono',monospace">⚡ Action: Attack</text>
+
+        <!-- Caption -->
+        <text x="300" y="422" fill="#8B949E" font-size="10" text-anchor="middle" font-family="'Roboto Mono',monospace">
+          FRAME <tspan fill="#58A6FF">2401</tspan>: NODE RETURNS STATE TO PARENT
+        </text>
+      </svg>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <a href="slide9.html">SLIDE_09</a>
+</footer>
+</body>
+</html>

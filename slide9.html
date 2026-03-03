@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>How Ticking Works</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --blue:   #58A6FF;
+    --green:  #39D353;
+    --gold:   #FFD700;
+    --red:    #FF4757;
+    --bg:     #0D1117;
+    --bg-alt: #010409;
+    --surface: #161B22;
+    --border: #30363D;
+    --text-muted: #8B949E;
+    --text-secondary: #C9D1D9;
+    --text-primary: #E6EDF3;
+  }
+
+  body {
+    margin: 0; padding: 0;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    background-color: var(--bg);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+  }
+
+  .bg-pattern {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.1;
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h1v1H0z' fill='%2358A6FF' fill-opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  .title-text { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Header */
+  header {
+    position: relative; z-index: 20; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 clamp(1rem, 4vw, 3rem);
+    height: clamp(3.5rem, 8vh, 5rem);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .header-left { display: flex; align-items: center; gap: 1rem; }
+  .header-icon {
+    width: 2.5rem; height: 2.5rem; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; background: rgba(88,166,255,0.1); border: 1px solid var(--blue); color: var(--blue);
+  }
+  header h1 { font-size: clamp(1rem, 2.5vw, 1.5rem); font-weight: 700; margin: 0; color: white; }
+  header p  { font-family: 'Roboto Mono', monospace; font-size: clamp(0.55rem, 1vw, 0.7rem); color: var(--blue); letter-spacing: 0.1em; margin: 0; }
+
+  .header-right { display: flex; align-items: center; gap: 1.5rem; }
+  .hz-label p:first-child { font-family: 'Roboto Mono', monospace; font-size: 0.65rem; color: var(--text-muted); margin: 0; }
+  .hz-label p:last-child  { font-family: 'Roboto Mono', monospace; font-size: clamp(0.75rem, 1.5vw, 0.9rem); color: var(--green); font-weight: 700; margin: 0; }
+  .divider { width: 1px; height: 2rem; background: var(--border); }
+  .slide-num { font-family: 'Roboto Mono', monospace; font-size: 1.25rem; color: var(--text-muted); }
+
+  /* Main */
+  main {
+    flex: 1; display: flex; flex-direction: row;
+    padding: clamp(1rem, 2.5vw, 2rem);
+    gap: clamp(1rem, 2.5vw, 2rem);
+    position: relative; z-index: 10;
+    overflow: hidden; min-height: 0;
+  }
+
+  /* Left Panel */
+  .left-panel {
+    width: clamp(220px, 32%, 380px); flex-shrink: 0;
+    display: flex; flex-direction: column; justify-content: center;
+    gap: clamp(1rem, 2.5vh, 2rem);
+    padding-left: clamp(0.25rem, 1vw, 1rem);
+  }
+
+  .step-item { display: flex; align-items: flex-start; gap: 1rem; }
+
+  .step-num {
+    width: clamp(1.75rem, 3vw, 2rem); height: clamp(1.75rem, 3vw, 2rem);
+    flex-shrink: 0; border-radius: 4px;
+    background: var(--surface); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Roboto Mono', monospace; font-weight: 700;
+    font-size: clamp(0.75rem, 1.2vw, 0.9rem);
+    margin-top: 2px;
+  }
+
+  .step-title { font-weight: 700; font-size: clamp(0.85rem, 1.5vw, 1.05rem); color: white; margin: 0 0 0.3rem; }
+  .step-desc  { font-size: clamp(0.7rem, 1.1vw, 0.8rem); color: var(--text-muted); margin: 0; line-height: 1.6; }
+
+  .code-snippet {
+    font-family: 'Roboto Mono', monospace;
+    background: var(--bg-alt); padding: 1px 5px; border-radius: 4px;
+    color: #A5D6FF; font-size: 0.9em;
+  }
+
+  .system-note {
+    padding: clamp(0.6rem, 1.5vw, 1rem);
+    border: 1px solid var(--border); border-radius: 6px;
+    background: rgba(22,27,34,0.5);
+  }
+  .system-note-label {
+    display: flex; align-items: center; gap: 0.5rem;
+    color: var(--blue); font-family: 'Roboto Mono', monospace;
+    font-size: 0.65rem; margin-bottom: 0.4rem;
+  }
+  .system-note p { font-size: clamp(0.65rem, 1vw, 0.75rem); color: var(--text-muted); font-style: italic; margin: 0; line-height: 1.6; }
+
+  /* Right Panel */
+  .right-panel {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column; justify-content: center;
+    gap: clamp(0.5rem, 1.5vh, 1rem);
+  }
+
+  /* Timeline row */
+  .timeline-row {
+    display: flex; align-items: center;
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+    position: relative;
+  }
+
+  /* Track line behind cards */
+  .timeline-track {
+    position: absolute; top: 50%; left: 0; right: 0;
+    height: 2px; background: var(--border); transform: translateY(-50%); z-index: 0;
+  }
+
+  .arrow-sep { color: var(--border); font-size: clamp(1rem, 2vw, 1.5rem); z-index: 1; flex-shrink: 0; }
+
+  /* Frame cards */
+  .frame-card {
+    flex: 1; min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex; flex-direction: column;
+    position: relative; z-index: 1;
+  }
+
+  .frame-card.running { border-color: var(--gold); box-shadow: 0 0 12px rgba(255,215,0,0.08); }
+  .frame-card.success { border-color: var(--green); box-shadow: 0 0 12px rgba(57,211,83,0.08); }
+
+  .frame-header {
+    background: var(--bg-alt); border-bottom: 1px solid var(--border);
+    font-family: 'Roboto Mono', monospace; font-size: clamp(0.6rem, 1vw, 0.72rem);
+    color: var(--text-muted); padding: clamp(0.3rem, 0.8vw, 0.5rem) clamp(0.5rem, 1vw, 0.75rem);
+    display: flex; justify-content: space-between; align-items: center;
+    border-radius: 7px 7px 0 0;
+  }
+
+  .frame-card.running .frame-header { background: rgba(255,215,0,0.08); color: var(--gold); font-weight: 700; }
+  .frame-card.success .frame-header { background: rgba(57,211,83,0.08);  color: var(--green); font-weight: 700; }
+
+  .frame-body {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: clamp(0.5rem, 1.5vw, 1rem) clamp(0.5rem, 1vw, 0.75rem);
+    gap: clamp(0.3rem, 1vh, 0.6rem);
+  }
+
+  /* Mini tree nodes */
+  .mini-node {
+    width: clamp(24px, 3.5vw, 34px); height: clamp(24px, 3.5vw, 34px);
+    border-radius: 4px; border: 2px solid var(--border);
+    background: var(--bg); display: flex; align-items: center; justify-content: center;
+    font-size: clamp(0.5rem, 1vw, 0.7rem);
+  }
+  .mini-node.gold  { border-color: var(--gold);  color: var(--gold);  background: rgba(255,215,0,0.08); }
+  .mini-node.green { border-color: var(--green); color: var(--green); background: rgba(57,211,83,0.08); }
+  .mini-node.blue  { border-color: var(--blue);  color: var(--blue);  box-shadow: 0 0 8px rgba(88,166,255,0.4); }
+  .mini-node.idle  { opacity: 0.3; }
+
+  .connector-v { width: 2px; height: clamp(8px, 1.5vh, 14px); background: var(--border); }
+
+  .node-row { display: flex; justify-content: center; gap: clamp(0.5rem, 2vw, 1.25rem); }
+  .node-col  { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
+
+  .status-badge {
+    font-family: 'Roboto Mono', monospace; font-size: clamp(0.5rem, 0.8vw, 0.62rem);
+    padding: 1px 5px; border-radius: 4px;
+  }
+  .badge-running { background: rgba(255,215,0,0.15); color: var(--gold);  border: 1px solid rgba(255,215,0,0.3); }
+  .badge-success { background: rgba(57,211,83,0.15);  color: var(--green); border: 1px solid rgba(57,211,83,0.3); }
+  .badge-blue    { background: rgba(88,166,255,0.1);  color: var(--blue);  border: 1px solid rgba(88,166,255,0.3); }
+
+  .frame-caption {
+    font-family: 'Roboto Mono', monospace; font-size: clamp(0.5rem, 0.8vw, 0.62rem);
+    color: var(--text-muted); text-align: center; padding-bottom: 0.25rem;
+  }
+
+  /* Timeline labels */
+  .timeline-labels {
+    display: flex; justify-content: space-between;
+    padding: 0 clamp(0.5rem, 1vw, 1rem);
+  }
+  .timeline-label {
+    flex: 1; text-align: center;
+    font-family: 'Roboto Mono', monospace; font-size: clamp(0.55rem, 0.9vw, 0.7rem);
+    color: var(--text-muted);
+  }
+
+  /* Mobile: stack */
+  @media (max-width: 700px) {
+    main { flex-direction: column; overflow: auto; }
+    .left-panel { width: 100%; }
+    .timeline-row { flex-direction: column; }
+    .timeline-track { display: none; }
+    .arrow-sep { transform: rotate(90deg); }
+    .frame-card { width: 100%; }
+    .timeline-labels { display: none; }
+  }
+
+  /* Footer */
+  footer {
+    height: 2.5rem; background: var(--bg); border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 0 2rem; z-index: 20; position: relative; flex-shrink: 0;
+  }
+  footer a { font-family: 'Roboto Mono', monospace; color: var(--blue); font-size: 0.75rem; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="bg-pattern"></div>
+
+<header>
+  <div class="header-left">
+    <div class="header-icon"><i class="fas fa-clock"></i></div>
+    <div>
+      <h1 class="title-text">How Ticking Works</h1>
+      <p>EXECUTION_MODEL: FRAME_BY_FRAME</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="hz-label" style="text-align:right">
+      <p>UPDATE_RATE</p>
+      <p>60Hz / 16.6ms</p>
+    </div>
+    <div class="divider"></div>
+    <div class="slide-num">09</div>
+  </div>
+</header>
+
+<main>
+  <!-- Left Panel -->
+  <div class="left-panel">
+    <div style="display:flex;flex-direction:column;gap:clamp(0.75rem,2vh,1.5rem)">
+      <div class="step-item">
+        <div class="step-num" style="color:var(--blue)">1</div>
+        <div>
+          <p class="step-title">The Tick Loop</p>
+          <p class="step-desc">The entire behavior tree is "ticked" (evaluated) once per frame. The signal starts at the <span class="code-snippet">Root</span> and travels down.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num" style="color:var(--gold)">2</div>
+        <div>
+          <p class="step-title">State Propagation</p>
+          <p class="step-desc">Nodes execute and immediately return a state: <span style="color:var(--green)">SUCCESS</span>, <span style="color:var(--red)">FAILURE</span>, or <span style="color:var(--gold)">RUNNING</span>.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num" style="color:var(--green)">3</div>
+        <div>
+          <p class="step-title">Handling "Running"</p>
+          <p class="step-desc">If a node returns <span style="color:var(--gold)">RUNNING</span>, the tree pauses that branch. Next frame, it resumes checking that same node until it finishes.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="system-note">
+      <div class="system-note-label"><i class="fas fa-info-circle"></i> SYSTEM_NOTE</div>
+      <p>Unlike FSMs which sit in a state, BTs effectively "re-decide" their path every tick, making them highly reactive to changing conditions.</p>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="right-panel">
+    <div class="timeline-row">
+      <div class="timeline-track"></div>
+
+      <!-- Frame T -->
+      <div class="frame-card running">
+        <div class="frame-header">
+          <span>FRAME <span style="color:white">t</span></span>
+          <span style="color:var(--gold)"><i class="fas fa-circle" style="font-size:7px;margin-right:4px"></i>RUNNING</span>
+        </div>
+        <div class="frame-body">
+          <div class="mini-node gold"><i class="fas fa-sitemap"></i></div>
+          <div class="connector-v"></div>
+          <div class="mini-node gold"><i class="fas fa-question"></i></div>
+          <div class="connector-v"></div>
+          <div class="node-row">
+            <div class="node-col">
+              <div class="mini-node gold"><i class="fas fa-running"></i></div>
+              <div class="status-badge badge-running">Moving...</div>
+            </div>
+            <div class="node-col">
+              <div class="mini-node idle"><i class="fas fa-crosshairs" style="color:#555"></i></div>
+            </div>
+          </div>
+          <div class="frame-caption">Action starts moving</div>
+        </div>
+      </div>
+
+      <div class="arrow-sep"><i class="fas fa-chevron-right"></i></div>
+
+      <!-- Frame T+1 -->
+      <div class="frame-card running">
+        <div class="frame-header">
+          <span>FRAME <span style="color:white">t+1</span></span>
+          <span style="color:var(--gold)"><i class="fas fa-circle" style="font-size:7px;margin-right:4px"></i>RUNNING</span>
+        </div>
+        <div class="frame-body">
+          <div class="mini-node gold"><i class="fas fa-sitemap"></i></div>
+          <div class="connector-v"></div>
+          <div class="mini-node gold"><i class="fas fa-question"></i></div>
+          <div class="connector-v"></div>
+          <div class="node-row">
+            <div class="node-col">
+              <div class="mini-node gold"><i class="fas fa-running"></i></div>
+              <div class="status-badge badge-running">Still Moving</div>
+            </div>
+            <div class="node-col">
+              <div class="mini-node idle"><i class="fas fa-crosshairs" style="color:#555"></i></div>
+            </div>
+          </div>
+          <div class="frame-caption">Tick returns to running node</div>
+        </div>
+      </div>
+
+      <div class="arrow-sep"><i class="fas fa-chevron-right"></i></div>
+
+      <!-- Frame T+2 -->
+      <div class="frame-card success">
+        <div class="frame-header">
+          <span>FRAME <span style="color:white">t+2</span></span>
+          <span style="color:var(--green)"><i class="fas fa-check-circle" style="font-size:7px;margin-right:4px"></i>SUCCESS</span>
+        </div>
+        <div class="frame-body">
+          <div class="mini-node green"><i class="fas fa-sitemap"></i></div>
+          <div class="connector-v"></div>
+          <div class="mini-node green"><i class="fas fa-question"></i></div>
+          <div class="connector-v"></div>
+          <div class="node-row">
+            <div class="node-col">
+              <div class="mini-node green"><i class="fas fa-check"></i></div>
+              <div class="status-badge badge-success">Arrived!</div>
+            </div>
+            <div class="node-col">
+              <div class="mini-node blue"><i class="fas fa-crosshairs"></i></div>
+              <div class="status-badge badge-blue">Next</div>
+            </div>
+          </div>
+          <div class="frame-caption">Move done, start Attack</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline labels -->
+    <div class="timeline-labels">
+      <div class="timeline-label">t = 0ms</div>
+      <div class="timeline-label"></div><!-- spacer for arrow -->
+      <div class="timeline-label">t = 16ms</div>
+      <div class="timeline-label"></div>
+      <div class="timeline-label">t = 32ms</div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <a href="slide10.html">SLIDE_10</a>
+</footer>
+</body>
+</html>

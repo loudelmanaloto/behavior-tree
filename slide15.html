@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>What's Next: Fuzzy Logic &amp; Probabilistic AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --purple: #D2A8FF;
+    --purple-dim: rgba(210,168,255,0.1);
+    --purple-border: rgba(210,168,255,0.3);
+    --bg:     #0D1117;
+    --bg-alt: #010409;
+    --surface: #161B22;
+    --border: #30363D;
+    --text-muted: #8B949E;
+    --text-secondary: #C9D1D9;
+    --text-primary: #E6EDF3;
+    --blue: #58A6FF;
+  }
+
+  body {
+    margin: 0; padding: 0;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    background-color: var(--bg);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+  }
+
+  .bg-pattern {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.1;
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h1v1H0z' fill='%23D2A8FF' fill-opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  .title-text { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Header */
+  header {
+    position: relative; z-index: 20; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 clamp(1rem, 4vw, 3rem);
+    height: clamp(3.5rem, 8vh, 5rem);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .header-left { display: flex; align-items: center; gap: 1rem; }
+  .header-icon {
+    width: 2.5rem; height: 2.5rem; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; background: var(--purple-dim); border: 1px solid var(--purple-border); color: var(--purple);
+  }
+  header h1 { font-size: clamp(1rem, 2.5vw, 1.5rem); font-weight: 700; margin: 0; color: white; }
+  header p  { font-family: 'Roboto Mono', monospace; font-size: clamp(0.55rem, 1vw, 0.7rem); color: var(--purple); letter-spacing: 0.08em; margin: 0; }
+  .slide-num { font-family: 'Roboto Mono', monospace; font-size: 1.25rem; color: var(--text-muted); }
+
+  /* Main */
+  main {
+    flex: 1; display: flex;
+    padding: clamp(1rem, 3vw, 2.5rem);
+    gap: clamp(1rem, 3vw, 3rem);
+    position: relative; z-index: 10;
+    align-items: center;
+    overflow: hidden; min-height: 0;
+  }
+
+  /* Left Column */
+  .left-col { flex: 0 0 auto; width: min(50%, 560px); display: flex; flex-direction: column; justify-content: center; gap: clamp(0.75rem, 2vh, 1.25rem); }
+
+  .section-label { font-family: 'Roboto Mono', monospace; font-size: clamp(0.55rem, 0.9vw, 0.7rem); color: var(--text-muted); margin: 0 0 0.3rem; }
+
+  h2 { font-family: 'Rajdhani', sans-serif; font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; color: white; margin: 0 0 0.5rem; }
+
+  .intro-desc { font-size: clamp(0.72rem, 1.2vw, 0.875rem); color: var(--text-secondary); line-height: 1.6; margin: 0; }
+
+  /* Topic cards */
+  .topic-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--purple);
+    padding: clamp(0.6rem, 1.5vw, 1rem) clamp(0.75rem, 1.5vw, 1.25rem);
+    transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+  }
+  .topic-card:hover {
+    transform: translateX(8px);
+    background: rgba(210,168,255,0.04);
+    box-shadow: 0 0 20px rgba(210,168,255,0.08);
+  }
+
+  .card-inner { display: flex; align-items: flex-start; gap: 0.75rem; }
+
+  .card-icon {
+    width: clamp(1.5rem, 2.5vw, 2rem); height: clamp(1.5rem, 2.5vw, 2rem);
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 4px; background: var(--purple-dim); color: var(--purple);
+    font-size: clamp(0.7rem, 1.2vw, 0.85rem); flex-shrink: 0; margin-top: 2px;
+  }
+
+  .card-title { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: clamp(0.9rem, 1.6vw, 1.1rem); color: white; margin: 0 0 0.2rem; }
+  .card-desc  { font-size: clamp(0.65rem, 1.1vw, 0.8rem); color: var(--text-muted); margin: 0; line-height: 1.5; }
+
+  .fuzzy-tags { display: flex; gap: 0.4rem; margin-top: 0.4rem; flex-wrap: wrap; }
+  .fuzzy-tag {
+    padding: 1px 8px; border: 1px solid var(--border);
+    border-radius: 3px; background: var(--bg);
+    font-family: 'Roboto Mono', monospace; font-size: clamp(0.5rem, 0.8vw, 0.62rem);
+    color: var(--purple);
+  }
+
+  .stat-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 0.4rem; }
+  .stat-fill {
+    height: 100%; background: var(--purple); width: 0%;
+    animation: fillBar 1.5s ease-out forwards 0.5s;
+  }
+  @keyframes fillBar { to { width: var(--width); } }
+
+  /* Right Column */
+  .right-col { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; }
+
+  .holo-container {
+    position: relative; width: 100%; max-width: 480px;
+    aspect-ratio: 1; /* keep square */
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .grid-overlay {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(210,168,255,0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(210,168,255,0.1) 1px, transparent 1px);
+    background-size: 40px 40px; opacity: 0.3;
+  }
+
+  .holo-container svg { width: 85%; height: 85%; }
+
+  /* Floating labels */
+  .float-label {
+    position: absolute; padding: 0.2rem 0.6rem;
+    border-radius: 4px; font-family: 'Roboto Mono', monospace;
+    font-size: clamp(0.5rem, 0.8vw, 0.65rem);
+    background: var(--bg); white-space: nowrap;
+  }
+  .float-label-top    { top: clamp(0.75rem,4%,1.5rem); right: clamp(0.75rem,4%,1.5rem); border: 1px solid var(--purple); color: var(--purple); box-shadow: 0 0 10px rgba(210,168,255,0.2); }
+  .float-label-bottom { bottom: clamp(0.75rem,4%,1.5rem); left: clamp(0.75rem,4%,1.5rem); border: 1px solid var(--border); color: var(--text-muted); }
+
+  /* Animations */
+  .curve-path { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawLine 3s ease-out forwards; }
+  @keyframes drawLine { to { stroke-dashoffset: 0; } }
+
+  .node-pulse { animation: pulseNode 2s ease-in-out infinite; }
+  @keyframes pulseNode { 0%,100% { r: 4; opacity: 0.5; } 50% { r: 6; opacity: 1; } }
+
+  /* Mobile: stack */
+  @media (max-width: 700px) {
+    main { flex-direction: column; overflow: auto; padding: 1rem; gap: 1rem; }
+    .left-col { width: 100%; }
+    .right-col { width: 100%; }
+    .holo-container { max-width: 100%; aspect-ratio: 4/3; }
+  }
+
+  /* Footer */
+  footer {
+    height: 2.5rem; background: var(--bg); border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 0 2rem; z-index: 20; position: relative; flex-shrink: 0;
+  }
+  footer span { font-family: 'Roboto Mono', monospace; color: var(--purple); font-size: 0.75rem; }
+</style>
+</head>
+<body>
+<div class="bg-pattern"></div>
+
+<header>
+  <div class="header-left">
+    <div class="header-icon"><i class="fas fa-brain"></i></div>
+    <div>
+      <h1 class="title-text">What's Next</h1>
+      <p>MODULE_02: PROBABILISTIC_AI &amp; FUZZY_LOGIC</p>
+    </div>
+  </div>
+  <div class="slide-num">15</div>
+</header>
+
+<main>
+  <!-- Left Column -->
+  <div class="left-col">
+    <div>
+      <p class="section-label">CURRENT_LIMITATION</p>
+      <h2>Beyond Deterministic Behavior</h2>
+      <p class="intro-desc">Behavior Trees are powerful but predictable. If input A happens, output B <em>always</em> happens. To create NPCs that feel truly alive, we need to introduce uncertainty, nuance, and judgment.</p>
+    </div>
+
+    <!-- Fuzzy Logic -->
+    <div class="topic-card">
+      <div class="card-inner">
+        <div class="card-icon"><i class="fas fa-water"></i></div>
+        <div style="flex:1">
+          <p class="card-title">Fuzzy Logic</p>
+          <p class="card-desc">Not just True/False (0 or 1). Handling "Degrees of Truth".</p>
+          <div class="fuzzy-tags">
+            <span class="fuzzy-tag">IsHungry: 0.74</span>
+            <span class="fuzzy-tag">IsAngry: 0.32</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Utility Theory -->
+    <div class="topic-card">
+      <div class="card-inner">
+        <div class="card-icon"><i class="fas fa-calculator"></i></div>
+        <div style="flex:1">
+          <p class="card-title">Utility Theory</p>
+          <p class="card-desc">Score-based decisions. "Which action is MOST useful right now?"</p>
+          <div class="stat-bar"><div class="stat-fill" style="--width:85%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Probabilistic -->
+    <div class="topic-card">
+      <div class="card-inner">
+        <div class="card-icon"><i class="fas fa-dice-d20"></i></div>
+        <div>
+          <p class="card-title">Probabilistic &amp; Stochastic</p>
+          <p class="card-desc">Weighted random choices to break repetitive patterns.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column -->
+  <div class="right-col">
+    <div class="holo-container">
+      <div class="grid-overlay"></div>
+
+      <svg viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="glow2">
+            <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+            <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- Background curve -->
+        <path d="M50 300 Q150 300 200 150 T350 300" fill="none" stroke="#30363D" stroke-dasharray="5,5" stroke-width="2"/>
+        <!-- Animated foreground curve -->
+        <path class="curve-path" d="M50 300 Q100 100 200 100 T350 300" fill="none" stroke="#D2A8FF" stroke-opacity="0.6" stroke-width="2" filter="url(#glow2)"/>
+
+        <!-- Central hub -->
+        <circle cx="200" cy="200" r="40" fill="#0D1117" stroke="#D2A8FF" stroke-width="2" filter="url(#glow2)"/>
+        <text x="200" y="208" fill="#D2A8FF" font-family="Rajdhani" font-size="24" font-weight="bold" text-anchor="middle">AI</text>
+
+        <!-- Spokes & nodes -->
+        <line x1="200" y1="160" x2="200" y2="100" stroke="#D2A8FF" stroke-width="1" opacity="0.5"/>
+        <circle class="node-pulse" cx="200" cy="100" r="5" fill="#D2A8FF"/>
+
+        <line x1="235" y1="180" x2="300" y2="120" stroke="#D2A8FF" stroke-width="1" opacity="0.5"/>
+        <circle class="node-pulse" cx="300" cy="120" r="5" fill="#D2A8FF" style="animation-delay:0.3s"/>
+
+        <line x1="235" y1="220" x2="300" y2="280" stroke="#D2A8FF" stroke-width="1" opacity="0.5"/>
+        <circle class="node-pulse" cx="300" cy="280" r="5" fill="#D2A8FF" style="animation-delay:0.7s"/>
+
+        <line x1="165" y1="220" x2="100" y2="280" stroke="#D2A8FF" stroke-width="1" opacity="0.5"/>
+        <circle class="node-pulse" cx="100" cy="280" r="5" fill="#D2A8FF" style="animation-delay:1.1s"/>
+
+        <line x1="165" y1="180" x2="100" y2="120" stroke="#D2A8FF" stroke-width="1" opacity="0.5"/>
+        <circle class="node-pulse" cx="100" cy="120" r="5" fill="#D2A8FF" style="animation-delay:1.4s"/>
+
+        <!-- Diamond accent -->
+        <path d="M185 240 L215 240 L215 250 L200 260 L185 250 Z" fill="#D2A8FF" opacity="0.2"/>
+      </svg>
+
+      <div class="float-label float-label-top">UNCERTAINTY: HIGH</div>
+      <div class="float-label float-label-bottom">
+        <span style="color:var(--purple)">NEXT_LESSON</span> loading...
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span>SLIDE_15</span>
+</footer>
+</body>
+</html>

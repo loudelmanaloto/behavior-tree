@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Problems with FSMs</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+
+<style>
+body{
+margin:0;
+background:#0D1117;
+font-family:Inter,sans-serif;
+color:#E6EDF3;
+}
+
+.hud-grid{
+position:absolute;
+inset:0;
+background-image:
+linear-gradient(rgba(255,71,87,.03) 1px,transparent 1px),
+linear-gradient(90deg,rgba(255,71,87,.03) 1px,transparent 1px);
+background-size:40px 40px;
+z-index:0;
+}
+
+.title-text{
+font-family:Rajdhani,sans-serif;
+text-transform:uppercase;
+letter-spacing:1px;
+}
+
+.problem-card{
+border-left:3px solid #FF4757;
+background:rgba(255,71,87,.05);
+transition:.3s;
+}
+
+.problem-card:hover{
+background:rgba(255,71,87,.12);
+transform:translateX(6px);
+}
+
+#fsm-spaghetti{
+width:100%;
+height:100%;
+}
+
+.warning-blink{
+animation:blink 2s infinite;
+}
+
+@keyframes blink{
+0%,100%{opacity:1}
+50%{opacity:.5}
+}
+</style>
+
+</head>
+
+<body class="relative flex flex-col min-h-screen w-full overflow-x-hidden">
+
+<div class="hud-grid"></div>
+
+<header class="relative z-20 flex flex-col lg:flex-row justify-between items-start lg:items-center px-6 lg:px-12 py-4 border-b border-[#30363D] bg-[#0D1117]/90 backdrop-blur">
+
+<div class="flex items-center space-x-4">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-[#FF4757]/10 border border-[#FF4757]">
+<i class="fas fa-network-wired text-[#FF4757]"></i>
+</div>
+
+<div>
+<h1 class="text-xl lg:text-2xl font-bold title-text">
+Problems with FSMs
+</h1>
+<p class="text-xs text-[#FF4757] font-mono">
+ERROR: STATE_EXPLOSION_DETECTED
+</p>
+</div>
+</div>
+
+<div class="mt-2 lg:mt-0 font-mono text-xs border border-[#30363D] px-3 py-1 rounded text-[#8B949E]">
+COMPLEXITY: O(N²)
+</div>
+
+</header>
+
+<main class="relative z-10 flex flex-col lg:flex-row flex-1 overflow-hidden">
+
+<div class="w-full lg:w-[400px] p-6 lg:p-12 space-y-6 bg-[#0D1117]/60 border-b lg:border-b-0 lg:border-r border-[#30363D]">
+
+<div class="problem-card p-4 rounded-r-lg">
+<h3 class="font-bold text-white title-text text-lg mb-2">
+State Explosion
+</h3>
+
+<p class="text-xs lg:text-sm text-[#8B949E]">
+Adding a new state requires defining transitions to every other state.
+<br/>
+<span class="text-[#FF4757] font-mono">N States = N² Transitions</span>
+</p>
+</div>
+
+<div class="problem-card p-4 rounded-r-lg">
+<h3 class="font-bold text-white title-text text-lg mb-2">
+Tightly Coupled Logic
+</h3>
+<p class="text-xs lg:text-sm text-[#8B949E]">
+Behaviors cannot be reused without copying transition logic.
+</p>
+</div>
+
+<div class="problem-card p-4 rounded-r-lg">
+<h3 class="font-bold text-white title-text text-lg mb-2">
+No Hierarchy
+</h3>
+<p class="text-xs lg:text-sm text-[#8B949E]">
+FSMs cannot easily express concurrent behaviors.
+</p>
+</div>
+
+<div class="problem-card p-4 rounded-r-lg">
+<h3 class="font-bold text-white title-text text-lg mb-2">
+Maintenance Nightmare
+</h3>
+<p class="text-xs lg:text-sm text-[#8B949E]">
+Large state graphs become impossible to debug.
+</p>
+</div>
+
+</div>
+
+<div class="flex-1 relative bg-[#010409] min-h-[400px]">
+
+<div class="absolute top-6 right-6 z-20">
+<div class="warning-blink flex items-center space-x-2 text-[#FF4757] bg-black/50 px-3 py-1 rounded border border-[#FF4757]/30 text-xs font-mono font-bold">
+<i class="fas fa-exclamation-circle"></i>
+<span>CYCLIC_DEPENDENCY_CRITICAL</span>
+</div>
+</div>
+
+<div id="fsm-spaghetti" class="w-full h-full"></div>
+
+<div class="absolute inset-0 pointer-events-none bg-[radial-gradient(circle,transparent_25%,#010409_100%)]"></div>
+
+</div>
+
+</main>
+
+<footer class="relative z-20 h-10 bg-[#0D1117] border-t border-[#30363D] flex justify-end items-center px-6 text-xs font-mono text-[#58A6FF]">
+<a href="slide5.html" class="hover:underline">SLIDE_05</a>
+</footer>
+
+<script>
+
+const chartDom=document.getElementById("fsm-spaghetti");
+const myChart=echarts.init(chartDom);
+
+const states=[
+"IDLE","PATROL","CHASE","ATTACK",
+"FLEE","SEARCH","RELOAD","COVER",
+"HEAL","STUNNED","DEAD","SPAWN"
+];
+
+const nodes=states.map(state=>({
+name:state,
+symbolSize:window.innerWidth<640?40:55,
+itemStyle:{
+color:"#0D1117",
+borderColor:"#FF4757",
+borderWidth:2,
+shadowBlur:10,
+shadowColor:"#FF4757"
+},
+label:{
+show:true,
+position:"inside",
+formatter:"{b}",
+color:"#E6EDF3",
+fontSize:11,
+fontFamily:"Roboto Mono",
+fontWeight:"bold"
+}
+}));
+
+const links=[];
+
+states.forEach((source,i)=>{
+states.forEach((target,j)=>{
+if(i!==j && Math.random()>0.3){
+links.push({
+source,
+target,
+lineStyle:{
+curveness:Math.random()*1-0.5,
+width:1,
+color:"rgba(255,71,87,.4)"
+}
+});
+}
+});
+});
+
+function renderChart(){
+
+myChart.setOption({
+backgroundColor:"transparent",
+
+tooltip:{},
+
+series:[{
+type:"graph",
+layout:"circular",
+
+circular:{
+rotateLabel:true
+},
+
+data:nodes,
+links:links,
+
+roam:false,
+
+label:{
+show:true,
+position:"inside",
+formatter:"{b}"
+},
+
+lineStyle:{
+color:"source",
+curveness:.3
+},
+
+emphasis:{
+focus:"adjacency",
+lineStyle:{
+width:4
+}
+}
+}]
+});
+
+}
+
+renderChart();
+
+window.addEventListener("resize",()=>{
+renderChart();
+myChart.resize();
+});
+
+</script>
+
+</body>
+</html>

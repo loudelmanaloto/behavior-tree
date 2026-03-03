@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Real Game Usage: The Last of Us &amp; GTA V</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --blue:   #58A6FF;
+    --gold:   #FFD700;
+    --green:  #8DBF68;
+    --bg:     #0D1117;
+    --bg-alt: #010409;
+    --surface: #161B22;
+    --border: #30363D;
+    --text-muted: #8B949E;
+    --text-secondary: #C9D1D9;
+    --text-primary: #E6EDF3;
+  }
+
+  body {
+    margin: 0; padding: 0;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    background-color: var(--bg);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+  }
+
+  .bg-pattern {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.1;
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h1v1H0z' fill='%2358A6FF' fill-opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  .title-text { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Header */
+  header {
+    position: relative; z-index: 20; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 clamp(1rem, 4vw, 3rem);
+    height: clamp(3.5rem, 8vh, 5rem);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .header-left { display: flex; align-items: center; gap: 1rem; }
+  .header-icon {
+    width: 2.5rem; height: 2.5rem; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; background: rgba(255,215,0,0.1); border: 1px solid var(--gold); color: var(--gold);
+  }
+  header h1 { font-size: clamp(1rem, 2.5vw, 1.5rem); font-weight: 700; margin: 0; color: white; }
+  header p  { font-family: 'Roboto Mono', monospace; font-size: clamp(0.55rem, 1vw, 0.7rem); color: var(--gold); letter-spacing: 0.1em; margin: 0; }
+  .slide-num { font-family: 'Roboto Mono', monospace; font-size: 1.25rem; color: var(--text-muted); }
+
+  /* Main split */
+  main {
+    flex: 1; display: flex; position: relative; z-index: 10; min-height: 0; overflow: hidden;
+  }
+
+  .split-container { display: flex; width: 100%; height: 100%; }
+
+  /* Panel */
+  .panel {
+    flex: 1; position: relative; display: flex; flex-direction: column;
+    border-right: 1px solid var(--border); overflow: hidden;
+  }
+  .panel:last-child { border-right: none; }
+
+  .panel-bg {
+    position: absolute; inset: 0; z-index: 0; opacity: 0.15;
+    transition: opacity 0.4s, transform 0.4s;
+  }
+  .panel:hover .panel-bg { opacity: 0.25; transform: scale(1.04); }
+
+  .bg-tlou {
+    background-color: #394533;
+    background-image: radial-gradient(circle at 30% 40%, rgba(100,150,100,0.4) 0%, transparent 60%);
+  }
+  .bg-gta {
+    background-color: #333945;
+    background-image: radial-gradient(circle at 70% 30%, rgba(100,120,180,0.4) 0%, transparent 60%);
+  }
+
+  .panel-content {
+    position: relative; z-index: 10;
+    padding: clamp(1rem, 3vw, 2.5rem);
+    display: flex; flex-direction: column; height: 100%;
+    background: rgba(13,17,23,0.6);
+    overflow-y: auto;
+  }
+
+  /* Tags & meta */
+  .tag-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; flex-wrap: wrap; }
+  .tag-pill {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: clamp(0.55rem, 0.9vw, 0.65rem); font-weight: 700; text-transform: uppercase;
+  }
+  .tag-tlou { background: rgba(141,191,104,0.1); color: var(--green); border: 1px solid rgba(141,191,104,0.3); }
+  .tag-gta  { background: rgba(88,166,255,0.1);  color: var(--blue);  border: 1px solid rgba(88,166,255,0.3); }
+  .tag-year { font-size: clamp(0.55rem, 0.9vw, 0.65rem); color: #555; font-family: 'Roboto Mono', monospace; }
+
+  .game-title {
+    font-family: 'Rajdhani', sans-serif; font-weight: 700;
+    font-size: clamp(1.25rem, 3vw, 2rem);
+    margin: 0 0 0.4rem; display: flex; align-items: center; flex-wrap: wrap;
+  }
+  .tlou-accent { color: var(--green); }
+  .gta-accent  { color: var(--blue); }
+
+  .game-meta {
+    font-family: 'Roboto Mono', monospace; font-size: clamp(0.55rem, 0.9vw, 0.65rem);
+    color: var(--text-muted); margin-bottom: clamp(0.75rem, 2vh, 1.5rem);
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+  }
+
+  /* Feature list */
+  .feature-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: clamp(0.6rem, 1.5vh, 1.25rem); }
+
+  .feature-item { display: flex; align-items: flex-start; gap: 0.75rem; }
+
+  .feature-icon {
+    width: clamp(1.25rem, 2.5vw, 1.5rem); height: clamp(1.25rem, 2.5vw, 1.5rem);
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 4px; flex-shrink: 0;
+    background: rgba(13,17,23,0.8); border: 1px solid var(--border);
+    font-size: clamp(0.6rem, 1.1vw, 0.75rem);
+  }
+  .tlou-icon { color: var(--green); border-color: rgba(141,191,104,0.3); }
+  .gta-icon  { color: var(--blue);  border-color: rgba(88,166,255,0.3); }
+
+  .feature-highlight { display: block; font-weight: 600; color: var(--text-primary); font-size: clamp(0.75rem, 1.3vw, 0.9rem); margin-bottom: 0.15rem; }
+  .feature-desc { font-size: clamp(0.65rem, 1.1vw, 0.8rem); color: #9ca3af; margin: 0; line-height: 1.5; }
+
+  /* Tech box */
+  .tech-box {
+    background: var(--bg-alt); border: 1px solid var(--border);
+    border-radius: 6px; padding: clamp(0.5rem, 1.5vw, 0.75rem) clamp(0.75rem, 1.5vw, 1rem);
+    margin-top: auto; flex-shrink: 0;
+  }
+  .tech-header {
+    font-family: 'Roboto Mono', monospace; font-size: clamp(0.5rem, 0.8vw, 0.62rem);
+    color: var(--text-muted); margin-bottom: 0.4rem;
+    display: flex; justify-content: space-between;
+  }
+
+  .system-diagram { display: flex; align-items: center; justify-content: center; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.4rem; }
+  .sys-node {
+    padding: 3px 6px; border-radius: 4px;
+    font-size: clamp(0.5rem, 0.8vw, 0.62rem); font-family: 'Roboto Mono', monospace;
+    background: var(--surface); border: 1px solid var(--border); white-space: nowrap;
+  }
+  .sys-arrow { color: var(--text-muted); font-size: clamp(0.5rem, 0.8vw, 0.65rem); }
+  .tech-quote { font-size: clamp(0.5rem, 0.8vw, 0.65rem); color: #555; margin: 0.4rem 0 0; font-style: italic; text-align: center; }
+
+  /* Mobile: stack panels vertically */
+  @media (max-width: 640px) {
+    .split-container { flex-direction: column; }
+    .panel { border-right: none; border-bottom: 1px solid var(--border); min-height: 50vh; }
+    .panel:last-child { border-bottom: none; }
+  }
+
+  /* Footer */
+  footer {
+    height: 2.5rem; background: var(--bg); border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 0 2rem; z-index: 20; position: relative; flex-shrink: 0;
+  }
+  footer a { font-family: 'Roboto Mono', monospace; color: var(--blue); font-size: 0.75rem; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="bg-pattern"></div>
+
+<header>
+  <div class="header-left">
+    <div class="header-icon"><i class="fas fa-gamepad"></i></div>
+    <div>
+      <h1 class="title-text">Real Game Usage</h1>
+      <p>CASE_STUDIES: AAA_IMPLEMENTATION</p>
+    </div>
+  </div>
+  <div class="slide-num">13</div>
+</header>
+
+<main>
+  <div class="split-container">
+
+    <!-- Left Panel: The Last of Us -->
+    <div class="panel">
+      <div class="panel-bg bg-tlou"></div>
+      <div class="panel-content">
+        <div class="tag-row">
+          <span class="tag-pill tag-tlou">Naughty Dog</span>
+          <span class="tag-year">2013</span>
+        </div>
+        <h2 class="game-title title-text">The Last of Us <span class="tlou-accent" style="margin-left:0.3rem;font-size:1.3em">.</span></h2>
+        <div class="game-meta">
+          <span><i class="fas fa-microchip" style="margin-right:0.25rem"></i>PROPRIETARY ENGINE</span>
+          <span><i class="fas fa-users" style="margin-right:0.25rem"></i>STEALTH / COMBAT AI</span>
+        </div>
+
+        <ul class="feature-list">
+          <li class="feature-item">
+            <div class="feature-icon tlou-icon"><i class="fas fa-brain"></i></div>
+            <div>
+              <span class="feature-highlight">Hybrid Architecture</span>
+              <p class="feature-desc">Uses Behavior Trees combined with <span style="color:white">HTN (Hierarchical Task Networks)</span> for long-term planning.</p>
+            </div>
+          </li>
+          <li class="feature-item">
+            <div class="feature-icon tlou-icon"><i class="fas fa-comments"></i></div>
+            <div>
+              <span class="feature-highlight">NPC Communication</span>
+              <p class="feature-desc">Enemies dynamically shout commands ("Flank him!", "He's over there!") that actually trigger behavior changes in squadmates.</p>
+            </div>
+          </li>
+          <li class="feature-item">
+            <div class="feature-icon tlou-icon"><i class="fas fa-search"></i></div>
+            <div>
+              <span class="feature-highlight">Investigate &amp; Search</span>
+              <p class="feature-desc">Complex "search spots" logic. If player breaks line of sight, AI predicts probable hiding spots.</p>
+            </div>
+          </li>
+        </ul>
+
+        <div class="tech-box" style="border-left: 2px solid var(--green)">
+          <div class="tech-header">
+            <span>SYSTEM_DIAGRAM</span>
+            <span style="color:var(--green)">AI_STACK</span>
+          </div>
+          <div class="system-diagram">
+            <div class="sys-node" style="color:var(--green)">SENSORS</div>
+            <div class="sys-arrow">→</div>
+            <div class="sys-node" style="color:white;border-color:var(--green)">HTN PLANNER</div>
+            <div class="sys-arrow">→</div>
+            <div class="sys-node" style="color:var(--green)">BEHAVIOR TREE</div>
+          </div>
+          <p class="tech-quote">"Clickers use sound propagation nodes to hunt."</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: GTA V -->
+    <div class="panel">
+      <div class="panel-bg bg-gta"></div>
+      <div class="panel-content">
+        <div class="tag-row">
+          <span class="tag-pill tag-gta">Rockstar North</span>
+          <span class="tag-year">2013</span>
+        </div>
+        <h2 class="game-title title-text">Grand Theft Auto V</h2>
+        <div class="game-meta">
+          <span><i class="fas fa-microchip" style="margin-right:0.25rem"></i>RAGE ENGINE</span>
+          <span><i class="fas fa-globe" style="margin-right:0.25rem"></i>OPEN WORLD AI</span>
+        </div>
+
+        <ul class="feature-list">
+          <li class="feature-item">
+            <div class="feature-icon gta-icon"><i class="fas fa-city"></i></div>
+            <div>
+              <span class="feature-highlight">Massive Scale</span>
+              <p class="feature-desc">Hundreds of active NPCs (pedestrians, police, gangs) driven by <span style="color:white">Behavior Trees</span> concurrently.</p>
+            </div>
+          </li>
+          <li class="feature-item">
+            <div class="feature-icon gta-icon"><i class="fas fa-car-side"></i></div>
+            <div>
+              <span class="feature-highlight">Contextual Behaviors</span>
+              <p class="feature-desc">NPCs switch trees entirely based on context: Driving Tree ↔ Combat Tree ↔ Idle Tree.</p>
+            </div>
+          </li>
+          <li class="feature-item">
+            <div class="feature-icon gta-icon"><i class="fas fa-eye"></i></div>
+            <div>
+              <span class="feature-highlight">Perception Layers</span>
+              <p class="feature-desc">Heavy reliance on perception systems (visual cones, audio events) to feed the BT conditions.</p>
+            </div>
+          </li>
+        </ul>
+
+        <div class="tech-box" style="border-left: 2px solid var(--blue)">
+          <div class="tech-header">
+            <span>SYSTEM_DIAGRAM</span>
+            <span style="color:var(--blue)">NPC_LOGIC</span>
+          </div>
+          <div class="system-diagram">
+            <div class="sys-node" style="color:var(--blue)">WORLD STATE</div>
+            <div class="sys-arrow">→</div>
+            <div class="sys-node" style="color:white;border-color:var(--blue)">DECISION BT</div>
+            <div class="sys-arrow">→</div>
+            <div class="sys-node" style="color:var(--blue)">LOW-LEVEL BT</div>
+          </div>
+          <p class="tech-quote">"Police AI coordinates via a shared Blackboard."</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <a href="slide14.html">SLIDE_14</a>
+</footer>
+</body>
+</html>

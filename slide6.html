@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Anatomy of a Behavior Tree</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --gold:   #FFD700;
+    --blue:   #58A6FF;
+    --green:  #39D353;
+    --orange: #FF7B00;
+    --purple: #D2A8FF;
+    --bg:     #0D1117;
+    --bg-alt: #010409;
+    --border: #30363D;
+    --text-muted: #8B949E;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg);
+    font-family: 'Inter', sans-serif;
+    color: #E6EDF3;
+  }
+
+  .hud-grid {
+    background-image:
+      linear-gradient(rgba(88,166,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(88,166,255,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .title-text {
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Header */
+  header {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 clamp(1rem, 4vw, 3rem);
+    height: clamp(3.5rem, 8vh, 5rem);
+    border-bottom: 1px solid var(--border);
+    background: rgba(13,17,23,0.9);
+    backdrop-filter: blur(4px);
+    flex-shrink: 0;
+  }
+
+  .header-left { display: flex; align-items: center; gap: 1rem; }
+
+  .header-icon {
+    width: 2.5rem; height: 2.5rem;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px;
+    background: rgba(88,166,255,0.1);
+    border: 1px solid var(--blue);
+    color: var(--blue);
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    font-weight: 700;
+    margin: 0;
+    color: white;
+    letter-spacing: 0.05em;
+  }
+
+  header p {
+    font-family: 'Roboto Mono', monospace;
+    font-size: clamp(0.6rem, 1vw, 0.75rem);
+    color: var(--blue);
+    letter-spacing: 0.1em;
+    margin: 0;
+  }
+
+  .depth-badge {
+    font-family: 'Roboto Mono', monospace;
+    font-size: clamp(0.6rem, 1vw, 0.75rem);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  /* Main */
+  main {
+    flex: 1;
+    display: flex;
+    position: relative;
+    z-index: 10;
+    min-height: 0;
+  }
+
+  /* Left Panel */
+  .left-panel {
+    width: clamp(240px, 30%, 400px);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(0.5rem, 1.5vh, 1rem);
+    padding: clamp(1rem, 3vw, 2rem);
+    background: rgba(13,17,23,0.8);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+  }
+
+  .node-card {
+    background: rgba(13,17,23,0.8);
+    border-left: 3px solid;
+    padding: clamp(0.5rem, 1.5vw, 0.75rem);
+    border-radius: 0 6px 6px 0;
+    backdrop-filter: blur(4px);
+  }
+
+  .node-card .card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .node-card h3 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: clamp(0.8rem, 1.5vw, 1rem);
+    margin: 0;
+  }
+
+  .node-card p {
+    font-size: clamp(0.65rem, 1.1vw, 0.75rem);
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .node-card code {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.9em;
+    color: #ccc;
+  }
+
+  /* Right Panel */
+  .right-panel {
+    flex: 1;
+    position: relative;
+    background: var(--bg-alt);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(1rem, 3vw, 2rem);
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .right-panel svg {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    display: block;
+  }
+
+  .vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle, transparent 20%, #010409 100%);
+  }
+
+  .tree-connector { stroke: #30363D; stroke-width: 2; fill: none; }
+  .node-text {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    fill: #0D1117;
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+  .node-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    fill: #8B949E;
+    text-anchor: middle;
+  }
+
+  /* Stack on mobile */
+  @media (max-width: 640px) {
+    main { flex-direction: column; }
+    .left-panel {
+      width: 100%;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.75rem;
+    }
+    .node-card { flex: 1 1 calc(50% - 0.25rem); min-width: 140px; border-left-width: 3px; }
+    .right-panel { min-height: 300px; }
+  }
+
+  /* Footer */
+  footer {
+    height: 2.5rem;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 2rem;
+    z-index: 20;
+    position: relative;
+    flex-shrink: 0;
+  }
+  footer a {
+    font-family: 'Roboto Mono', monospace;
+    color: var(--blue);
+    font-size: 0.75rem;
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+<div class="hud-grid"></div>
+
+<header>
+  <div class="header-left">
+    <div class="header-icon">
+      <i class="fas fa-sitemap" style="font-size:1rem"></i>
+    </div>
+    <div>
+      <h1 class="title-text">Anatomy of a Behavior Tree</h1>
+      <p>STRUCTURE_ANALYSIS</p>
+    </div>
+  </div>
+  <div class="depth-badge">DEPTH: 3 LAYERS</div>
+</header>
+
+<main>
+  <!-- Left Panel -->
+  <div class="left-panel">
+    <div class="node-card" style="border-color: var(--gold)">
+      <div class="card-title">
+        <i class="fas fa-crown" style="color:var(--gold); font-size:0.85rem"></i>
+        <h3 style="color:var(--gold)">Root Node</h3>
+      </div>
+      <p>The entry point. Ticked once per frame by the game engine. Passes the tick down to its child.</p>
+    </div>
+
+    <div class="node-card" style="border-color: var(--blue)">
+      <div class="card-title">
+        <i class="fas fa-question-circle" style="color:var(--blue); font-size:0.85rem"></i>
+        <h3 style="color:var(--blue)">Composite Nodes</h3>
+      </div>
+      <p><strong style="color:#ccc">Selector (?)</strong>: OR logic. Succeeds if any child succeeds.<br/>
+         <strong style="color:#ccc">Sequence (→)</strong>: AND logic. Succeeds only if all children succeed.</p>
+    </div>
+
+    <div class="node-card" style="border-color: var(--purple)">
+      <div class="card-title">
+        <i class="fas fa-magic" style="color:var(--purple); font-size:0.85rem"></i>
+        <h3 style="color:var(--purple)">Decorator Nodes</h3>
+      </div>
+      <p>Wrappers that modify a single child. Examples: <code>Inverter</code>, <code>Repeater</code>, <code>Succeeder</code>.</p>
+    </div>
+
+    <div class="node-card" style="border-color: var(--orange)">
+      <div class="card-title">
+        <i class="fas fa-leaf" style="color:var(--orange); font-size:0.85rem"></i>
+        <h3 style="color:var(--orange)">Leaf Nodes</h3>
+      </div>
+      <p><strong style="color:#ccc">Condition</strong>: Checks state (e.g., "IsEnemyVisible?").<br/>
+         <strong style="color:#ccc">Action</strong>: Performs work (e.g., "MoveToTarget").</p>
+    </div>
+  </div>
+
+  <!-- Right Panel: SVG Tree -->
+  <div class="right-panel">
+    <svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="glow-gold" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- Connectors -->
+      <path class="tree-connector" d="M400 60 L400 130"/>
+      <path class="tree-connector" d="M400 130 L200 130 L200 220"/>
+      <path class="tree-connector" d="M400 130 L600 130 L600 220"/>
+      <path class="tree-connector" d="M200 260 L200 350"/>
+      <path class="tree-connector" d="M600 260 L500 260 L500 350"/>
+      <path class="tree-connector" d="M600 260 L700 260 L700 350"/>
+
+      <!-- ROOT -->
+      <g transform="translate(400,40)">
+        <rect fill="#FFD700" x="-60" y="-20" width="120" height="40" rx="20" filter="url(#glow-gold)"/>
+        <text class="node-text" x="0" y="1">ROOT</text>
+        <text class="node-label" x="0" y="-30">Entry Point</text>
+      </g>
+
+      <!-- SELECTOR -->
+      <g transform="translate(400,150)">
+        <rect fill="#58A6FF" x="-20" y="-20" width="40" height="40" rx="5"/>
+        <text class="node-text" style="font-size:24px;fill:white" x="0" y="2">?</text>
+        <text class="node-label" style="text-anchor:start" x="60" y="0">Selector (OR)</text>
+      </g>
+
+      <!-- DECORATOR -->
+      <g transform="translate(200,240)">
+        <rect fill="#D2A8FF" x="-50" y="-20" width="100" height="40" rx="8"/>
+        <text class="node-text" x="0" y="1">INVERTER</text>
+        <text class="node-label" x="0" y="-30">Decorator</text>
+      </g>
+
+      <!-- SEQUENCE -->
+      <g transform="translate(600,240)">
+        <rect fill="#39D353" x="-20" y="-20" width="40" height="40" rx="5"/>
+        <text class="node-text" style="font-size:24px;fill:#0D1117" x="0" y="2">→</text>
+        <text class="node-label" style="text-anchor:start" x="60" y="0">Sequence (AND)</text>
+      </g>
+
+      <!-- LEAF: IsEnemyDead? -->
+      <g transform="translate(200,370)">
+        <rect fill="#FF7B00" x="-70" y="-20" width="140" height="40" rx="20"/>
+        <text class="node-text" x="0" y="1">IsEnemyDead?</text>
+        <text class="node-label" x="0" y="35">Condition (Leaf)</text>
+      </g>
+
+      <!-- LEAF: IsVisible? -->
+      <g transform="translate(500,370)">
+        <rect fill="#FF7B00" x="-60" y="-20" width="120" height="40" rx="20"/>
+        <text class="node-text" x="0" y="1">IsVisible?</text>
+        <text class="node-label" x="0" y="35">Condition (Leaf)</text>
+      </g>
+
+      <!-- LEAF: ATTACK -->
+      <g transform="translate(700,370)">
+        <rect fill="#FF7B00" x="-50" y="-20" width="100" height="40" rx="5"/>
+        <text class="node-text" x="0" y="1">ATTACK</text>
+        <text class="node-label" x="0" y="35">Action (Leaf)</text>
+      </g>
+    </svg>
+    <div class="vignette"></div>
+  </div>
+</main>
+
+<footer>
+  <a href="slide7.html">SLIDE_07</a>
+</footer>
+</body>
+</html>

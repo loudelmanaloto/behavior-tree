@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FSM vs Behavior Tree Comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --blue:   #58A6FF;
+    --green:  #39D353;
+    --gold:   #FFD700;
+    --red:    #FF4757;
+    --bg:     #0D1117;
+    --bg-alt: #010409;
+    --surface: #161B22;
+    --border: #30363D;
+    --text-muted: #8B949E;
+    --text-primary: #E6EDF3;
+  }
+
+  body {
+    margin: 0; padding: 0;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    background-color: var(--bg);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+  }
+
+  .bg-pattern {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.15;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2330363D' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  .title-text { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Header */
+  header {
+    position: relative; z-index: 20; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 clamp(1rem, 4vw, 3rem);
+    height: clamp(3.5rem, 8vh, 5rem);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .header-left { display: flex; align-items: center; gap: 1rem; }
+  .header-icon {
+    width: 2.5rem; height: 2.5rem; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; background: rgba(88,166,255,0.1); border: 1px solid var(--blue); color: var(--blue);
+  }
+  header h1 { font-size: clamp(1rem, 2.5vw, 1.5rem); font-weight: 700; margin: 0; color: white; }
+  header p  { font-family: 'Roboto Mono', monospace; font-size: clamp(0.55rem, 1vw, 0.7rem); color: var(--blue); letter-spacing: 0.1em; margin: 0; }
+  .slide-num { font-family: 'Roboto Mono', monospace; font-size: 1.25rem; color: var(--text-muted); }
+
+  /* Main */
+  main {
+    flex: 1; display: flex; flex-direction: column;
+    padding: clamp(0.75rem, 2vw, 2rem) clamp(1rem, 4vw, 3rem);
+    position: relative; z-index: 10;
+    gap: clamp(0.5rem, 1.5vh, 1rem);
+    overflow: hidden; min-height: 0;
+  }
+
+  /* Column headers */
+  .col-headers {
+    display: grid;
+    grid-template-columns: 1fr clamp(80px, 10vw, 140px) 1fr;
+    gap: clamp(0.5rem, 1.5vw, 1.25rem);
+    flex-shrink: 0;
+  }
+
+  .col-header {
+    text-align: center;
+    padding: clamp(0.6rem, 1.5vw, 1.25rem);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 4px solid var(--border);
+    border-radius: 8px 8px 0 0;
+    position: relative;
+  }
+  .col-header .top-icon {
+    position: absolute; top: -0.85rem; left: 50%; transform: translateX(-50%);
+    background: var(--bg); padding: 0 0.4rem;
+    font-size: clamp(0.85rem, 1.8vw, 1.25rem);
+  }
+  .col-header h2 { font-size: clamp(0.85rem, 1.8vw, 1.25rem); font-weight: 700; color: white; margin: 0.3rem 0 0; }
+  .col-header p  { font-family: 'Roboto Mono', monospace; font-size: clamp(0.55rem, 0.9vw, 0.65rem); color: var(--text-muted); margin: 0.2rem 0 0; }
+
+  .header-fsm { border-top-color: var(--red); }
+  .header-bt  { border-top-color: var(--green); }
+
+  .criteria-header {
+    display: flex; align-items: flex-end; justify-content: center; padding-bottom: 0.75rem;
+    font-family: 'Roboto Mono', monospace; font-size: clamp(0.55rem, 0.9vw, 0.65rem); color: var(--text-muted);
+  }
+
+  /* Rows */
+  .rows-container {
+    flex: 1; overflow-y: auto; min-height: 0;
+    display: flex; flex-direction: column;
+    gap: clamp(0.4rem, 1vh, 0.75rem);
+  }
+
+  .comparison-row {
+    display: grid;
+    grid-template-columns: 1fr clamp(80px, 10vw, 140px) 1fr;
+    gap: clamp(0.5rem, 1.5vw, 1.25rem);
+    align-items: stretch;
+    flex-shrink: 0;
+  }
+
+  .row-item {
+    background: rgba(22,27,34,0.6);
+    border: 1px solid var(--border);
+    padding: clamp(0.6rem, 1.5vw, 1rem) clamp(0.75rem, 1.5vw, 1.25rem);
+    display: flex; align-items: center;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+  .row-item:hover { background: rgba(48,54,61,0.4); }
+
+  .status-bad     { border-left: 3px solid var(--red);   background-color: rgba(255,71,87,0.04); }
+  .status-good    { border-left: 3px solid var(--green); background-color: rgba(57,211,83,0.04); }
+  .status-neutral { border-left: 3px solid var(--text-muted); }
+
+  .icon-box {
+    width: clamp(1.5rem, 2.5vw, 1.875rem); height: clamp(1.5rem, 2.5vw, 1.875rem);
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 4px; margin-right: clamp(0.5rem, 1vw, 0.75rem); flex-shrink: 0;
+    font-size: clamp(0.7rem, 1.2vw, 0.85rem);
+  }
+  .icon-bad     { background: rgba(255,71,87,0.1);  color: var(--red); }
+  .icon-good    { background: rgba(57,211,83,0.1);  color: var(--green); }
+  .icon-neutral { background: rgba(139,148,158,0.1); color: var(--text-muted); }
+
+  .item-title { font-weight: 700; font-size: clamp(0.75rem, 1.3vw, 0.9rem); color: white; margin: 0 0 0.2rem; }
+  .item-desc  { font-size: clamp(0.62rem, 1vw, 0.75rem); color: var(--text-muted); margin: 0; line-height: 1.5; }
+
+  .score-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 0.4rem; width: 100%; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 2px; }
+  .fill-bad  { background: var(--red);   width: 30%; }
+  .fill-good { background: var(--green); width: 90%; }
+  .fill-med  { background: var(--gold);  width: 60%; }
+
+  /* VS middle column */
+  .row-category {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--text-muted);
+    font-family: 'Rajdhani', sans-serif; font-weight: 600;
+    text-transform: uppercase; font-size: clamp(0.55rem, 0.9vw, 0.75rem); letter-spacing: 1px;
+    background: var(--bg-alt); border: 1px solid var(--border); border-radius: 4px;
+    position: relative; gap: 0.4rem;
+  }
+
+  .connector-line {
+    position: absolute; top: 50%; left: 0; right: 0;
+    height: 1px; background: var(--border); z-index: 0;
+  }
+
+  .vs-badge {
+    width: clamp(28px, 3.5vw, 40px); height: clamp(28px, 3.5vw, 40px);
+    border-radius: 50%; background: var(--bg); border: 2px solid var(--blue);
+    color: var(--blue); display: flex; align-items: center; justify-content: center;
+    font-family: 'Rajdhani', sans-serif; font-weight: 700;
+    font-size: clamp(0.65rem, 1.2vw, 1rem);
+    z-index: 1; box-shadow: 0 0 12px rgba(88,166,255,0.25);
+    flex-shrink: 0;
+  }
+
+  .criteria-label {
+    z-index: 1; background: var(--bg-alt);
+    padding: 0 0.3rem; font-size: clamp(0.5rem, 0.85vw, 0.68rem);
+    text-align: center;
+  }
+
+  /* Mobile: stack rows vertically as cards */
+  @media (max-width: 640px) {
+    .col-headers { display: none; }
+    .comparison-row {
+      grid-template-columns: 1fr;
+      gap: 0.4rem;
+    }
+    .row-category { flex-direction: row; padding: 0.4rem 0.75rem; border-radius: 4px; justify-content: flex-start; gap: 0.75rem; }
+    .connector-line { display: none; }
+    .vs-badge { width: 24px; height: 24px; font-size: 0.6rem; }
+  }
+
+  /* Footer */
+  footer {
+    height: 2.5rem; background: var(--bg); border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 0 2rem; z-index: 20; position: relative; flex-shrink: 0;
+  }
+  footer a { font-family: 'Roboto Mono', monospace; color: var(--blue); font-size: 0.75rem; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="bg-pattern"></div>
+
+<header>
+  <div class="header-left">
+    <div class="header-icon"><i class="fas fa-balance-scale"></i></div>
+    <div>
+      <h1 class="title-text">FSM vs Behavior Trees</h1>
+      <p>ARCHITECTURAL_ANALYSIS: COMPARISON_MATRIX</p>
+    </div>
+  </div>
+  <div class="slide-num">11</div>
+</header>
+
+<main>
+  <!-- Column headers -->
+  <div class="col-headers">
+    <div class="col-header header-fsm">
+      <div class="top-icon"><i class="fas fa-project-diagram" style="color:var(--red)"></i></div>
+      <h2>Finite State Machine</h2>
+      <p>THE "OLD SCHOOL" WAY</p>
+    </div>
+    <div class="criteria-header">CRITERIA</div>
+    <div class="col-header header-bt">
+      <div class="top-icon"><i class="fas fa-sitemap" style="color:var(--green)"></i></div>
+      <h2>Behavior Tree</h2>
+      <p>THE MODERN STANDARD</p>
+    </div>
+  </div>
+
+  <!-- Rows -->
+  <div class="rows-container">
+
+    <!-- Structure -->
+    <div class="comparison-row">
+      <div class="row-item status-neutral">
+        <div class="icon-box icon-neutral"><i class="fas fa-circle-nodes"></i></div>
+        <div>
+          <p class="item-title">Flat Graph</p>
+          <p class="item-desc">States connected by transitions. Cyclic structure.</p>
+        </div>
+      </div>
+      <div class="row-category">
+        <div class="connector-line"></div>
+        <div class="vs-badge">VS</div>
+        <span class="criteria-label">STRUCTURE</span>
+      </div>
+      <div class="row-item status-good">
+        <div class="icon-box icon-good"><i class="fas fa-folder-tree"></i></div>
+        <div>
+          <p class="item-title">Hierarchical Tree</p>
+          <p class="item-desc">Directed Acyclic Graph (DAG). Depth-first traversal.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scalability -->
+    <div class="comparison-row">
+      <div class="row-item status-bad">
+        <div class="icon-box icon-bad"><i class="fas fa-bomb"></i></div>
+        <div style="flex:1">
+          <p class="item-title">State Explosion</p>
+          <p class="item-desc">Complexity grows as O(N²). Hard to add new states late.</p>
+          <div class="score-bar"><div class="score-fill fill-bad"></div></div>
+        </div>
+      </div>
+      <div class="row-category">
+        <div class="connector-line"></div>
+        <div class="vs-badge">VS</div>
+        <span class="criteria-label">SCALABILITY</span>
+      </div>
+      <div class="row-item status-good">
+        <div class="icon-box icon-good"><i class="fas fa-chart-line"></i></div>
+        <div style="flex:1">
+          <p class="item-title">Scales Gracefully</p>
+          <p class="item-desc">Add subtrees without affecting existing logic. Linear growth.</p>
+          <div class="score-bar"><div class="score-fill fill-good"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reuse -->
+    <div class="comparison-row">
+      <div class="row-item status-bad">
+        <div class="icon-box icon-bad"><i class="fas fa-link"></i></div>
+        <div>
+          <p class="item-title">Tightly Coupled</p>
+          <p class="item-desc">Logic embedded in transitions. Cannot copy-paste behaviors easily.</p>
+        </div>
+      </div>
+      <div class="row-category">
+        <div class="connector-line"></div>
+        <div class="vs-badge">VS</div>
+        <span class="criteria-label">REUSE</span>
+      </div>
+      <div class="row-item status-good">
+        <div class="icon-box icon-good"><i class="fas fa-puzzle-piece"></i></div>
+        <div>
+          <p class="item-title">Modular Subtrees</p>
+          <p class="item-desc">"Search" subtree can be reused for Guard, Soldier, and Boss.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logic Flow -->
+    <div class="comparison-row">
+      <div class="row-item status-neutral">
+        <div class="icon-box icon-neutral"><i class="fas fa-exchange-alt"></i></div>
+        <div>
+          <p class="item-title">Explicit Transitions</p>
+          <p class="item-desc">Must define A → B conditions manually.</p>
+        </div>
+      </div>
+      <div class="row-category">
+        <div class="connector-line"></div>
+        <div class="vs-badge">VS</div>
+        <span class="criteria-label">LOGIC FLOW</span>
+      </div>
+      <div class="row-item status-good">
+        <div class="icon-box icon-good"><i class="fas fa-sort-amount-down"></i></div>
+        <div>
+          <p class="item-title">Implicit Priority</p>
+          <p class="item-desc">Top/Left nodes naturally take priority. No spaghetti wiring.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Learning -->
+    <div class="comparison-row">
+      <div class="row-item status-good">
+        <div class="icon-box icon-good"><i class="fas fa-graduation-cap"></i></div>
+        <div style="flex:1">
+          <p class="item-title">Simple Concept</p>
+          <p class="item-desc">Easy to understand: "If this, then that."</p>
+          <div class="score-bar"><div class="score-fill fill-good"></div></div>
+        </div>
+      </div>
+      <div class="row-category">
+        <div class="connector-line"></div>
+        <div class="vs-badge">VS</div>
+        <span class="criteria-label">LEARNING</span>
+      </div>
+      <div class="row-item status-neutral">
+        <div class="icon-box icon-neutral"><i class="fas fa-layer-group"></i></div>
+        <div style="flex:1">
+          <p class="item-title">Moderate Curve</p>
+          <p class="item-desc">Requires thinking in trees/tasks. Nodes vs Decorators takes time.</p>
+          <div class="score-bar"><div class="score-fill fill-med"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <a href="slide12.html">SLIDE_12</a>
+</footer>
+</body>
+</html>
